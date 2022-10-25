@@ -1,14 +1,17 @@
 # Dependencies
 import os
 import unittest
-from ..src.data.PrepareInput import PrepareAudio
+from importlib import import_module
+import sys
+sys.path.insert(1, "MGR//src//data")  # Specify absolute path to PrepareInput
+prepareInput = import_module('PrepareInput')
 
 
 class PrepareAudioTestCase(unittest.TestCase):
     """Contains various tests intended to be used with
     ...the PrepareAudio class."""
 
-    pa = PrepareAudio()
+    pa = prepareInput.PrepareAudio()
 
     def test1(self):
         """Check if .mp3 file is accepted."""
