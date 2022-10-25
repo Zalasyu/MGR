@@ -1,14 +1,20 @@
+## install pip requirements
+install:
+	pip install -r requirements.txt
 
-## pytest: pytest is a mature full-featured Python testing tool that helps you write better programs. Path: Makefile
+## Usage: make pytest
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
 	@pytest tests/ 
 
 ## testcov uses pytest-cov to generate a coverage report.
+## Usage: make testcov
 testcov: ## Test the code with pytest and measure coverage
 	@echo "🚀 Testing code: Running pytest with coverage"
 	@pytest --cov=src tests/ 
 
+## Test the code with pytest and measure coverage and generate an HTML report.
+## Usage: make testcovrep
 testcovrep: ## Test the code with pytest and measure coverage and generate report
 	@echo "🚀 Testing code: Running pytest with coverage and report"
 	@pytest --cov-report html:cov_html --cov-report xml:cov_xml--cov=src tests/
