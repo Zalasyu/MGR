@@ -14,9 +14,12 @@ class PrepareAudio:
     generating a mel spectrograph that will ultimately serve as the
     input for a machine learning model."""
 
-    def __init__(self) -> None:
+    def __init__(self):
         """Constructor method for PrepareAudio class.
         No values except self.n_mels needs to be tweaked."""
+
+        # List of accepted file types (Feel free to add to this as you please)
+        self.accepted_file_types = ['.mp3', '.mp4', '.au', '.wav']
 
         # For the purpose of naming the output file. Updated after start().
         self.file_name = None
@@ -54,29 +57,36 @@ class PrepareAudio:
         # ...print message and exit return
         if not os.path.exists(path):
             print("The specified file does not exist. Please try again.")
-            return
+            return False
 
-        # 2. Convert audio file to .wav and save to /Inputs directory (Does so
+        # 2. Check if the file is accepted
+        file_ext = os.path.splitext(path)[1]  # Extract file extension
+        if file_ext not in self.accepted_file_types:
+            print("The specified file is not accepted. Please try again.")
+            return False
+
+        # 3. Convert audio file to .wav and save to /Inputs directory (Does so
         # ...for ALL file types, even .wav for the purpose of uniformity)
         path = self.convert_to_wav(path)
 
-        # 3. Get signal and sample rate of choosen audio file
+        # 4. Get signal and sample rate of choosen audio file
         waveform, sr = torchaudio.load(path)
         # self.plot_graph(signal, sr, 'Waveform')             # Optional
         # self.plot_graph(signal, sr, 'Vanilla Spectrogram')  # Optional
 
-        # 4. Resample audio signal to match desired sample rate
+        # 5. Resample audio signal to match desired sample rate
         # ...if it doesnt already match
         if sr != self.sr:
             waveform = self.resample_signal(waveform, sr)
 
-        # 5. Perform mel transformation on signal
+        # 6. Perform mel transformation on signal
         mel_spectrogram = self.transformer(waveform)
         # self.plot_melspectrogram(mel_spectrogram[0])  # Optional
 
-        # 6. Save image to directory (This img will be the
+        # 7. Save image to directory (This img will be the
         # ...output of this program and input of ML model)
         self.generate_melspec_png(mel_spectrogram[0])
+        return True
 
     def convert_to_wav(self, path):
         """Converts the input audio file to .wav format and places
@@ -91,14 +101,18 @@ class PrepareAudio:
         file_name_with_ext = path_parts[len(path_parts)-1]
         idx = len(file_name_with_ext) - file_name_with_ext.index('.')
         self.file_name = file_name_with_ext[:len(file_name_with_ext)-idx]
-        path = f'Inputs/{self.file_name}.wav'
+        path_to_wav = f'Inputs/{self.file_name}.wav'
 
-        # Convert to .wav and save to directory
+        # Create an Inputs/ folder if it doesnt already exist
+        if not os.path.exists('Inputs'):
+            os.mkdir('Inputs')
+
+        # Convert input file to .wav and save to Inputs/ directory
         AudioSegment.from_file(path).export(
-            path, format='wav')
+            path_to_wav, format='wav')
 
         # Return path to converted audio file
-        return path
+        return path_to_wav
 
     def resample_signal(self, signal, sr):
         """Resamples the passed audio signal to a desired sample rate
@@ -184,5 +198,5 @@ if __name__ == "__main__":
     # for the 'file' variable and the class with take care of the rest!
 
     audio_prepper = PrepareAudio()
-    file = "INSERT PATH TO AUDIO FILE HERE"
+    file = 'INSERT PATH TO AUDIO FILE HERE'
     audio_prepper.start(file)
