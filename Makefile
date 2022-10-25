@@ -17,7 +17,7 @@ testcov: ## Test the code with pytest and measure coverage
 ## Usage: make testcovrep
 testcovrep: ## Test the code with pytest and measure coverage and generate report
 	@echo "🚀 Testing code: Running pytest with coverage and report"
-	@pytest --cov-report html:cov_html --cov-report xml:cov_xml--cov=src tests/
+	@pytest --cov-report html:cov_html --cov-report xml:cov_xml --cov=src tests/
 
 ## Usage: make add
 add: ## Add new files to track on git
