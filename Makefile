@@ -46,6 +46,14 @@ push: ## Push changes to git
 checkout: ## Checkout a branch
 	@git checkout $(b)
 
+## Pull from main to development branch
+## Usage: make mainpull b="Branch to pull into from main"
+mainpull: ## Pull from main to development branch
+	@git checkout main
+	@git pull
+	@git checkout ${b}
+	@git merge main
+
 ## Usage: make switch b="Branch to switch to"
 switch: ## Switch to a new branch
 	@git checkout -b $(b)
