@@ -5,7 +5,7 @@ install:
 ## Usage: make pytest
 test: ## Test the code with pytest
 	@echo "🚀 Testing code: Running pytest"
-	@pytest tests/ 
+	@pytest tests/tests.py
 
 ## testcov uses pytest-cov to generate a coverage report.
 ## Usage: make testcov
