@@ -1,12 +1,13 @@
-# Dependencies
+""" This module prepares the audio file for further processing. """
+
+import os.path                      # For managing directory files
 import torch                        # Main ML framework
 import torchaudio                   # Main audio processing framework
 import matplotlib.pyplot as plt     # For displaying the graph
-import librosa                      # For converting spectrogram
+import librosa                      # For audio processing
 import librosa.display              # For displaying spectrogram
 import numpy as np                  # For utilizing a numpy array
 from pydub import AudioSegment      # Audio format conversion
-import os.path                      # For managing directory files
 
 
 class PrepareAudio:
@@ -45,6 +46,28 @@ class PrepareAudio:
             hop_length=self.hop_length,
             n_mels=self.n_mels
         )
+
+    def check_file_exists(self, path):
+        """Checks if the specified file exists.
+        Args: Path = path to audio file.
+        Return: True if file exists, False otherwise.
+        """
+
+        if os.path.exists(path):
+            return True
+        else:
+            return False
+
+    def check_file_type(self, path):
+        """Check if the file type is accetable.
+        Args: Path = path to audio file.
+        Return: True if file is accepted, False otherwise.
+        """
+        file_ext = os.path.splitext(path)[1]
+        if file_ext in self.accepted_file_types:
+            return True
+        else:
+            return False
 
     def start(self, path):
         """Main driver function for the PrepareAudio class.
@@ -198,5 +221,5 @@ if __name__ == "__main__":
     # for the 'file' variable and the class with take care of the rest!
 
     audio_prepper = PrepareAudio()
-    file = 'INSERT PATH TO AUDIO FILE HERE'
+    file = 'PATH_TO_AUDIO_FILE'
     audio_prepper.start(file)
