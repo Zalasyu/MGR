@@ -1,7 +1,7 @@
 # Dependencies
 import os
 import unittest
-from ..MGR.src.data.PrepareInput import PrepareAudio
+from MGR.src.data.PrepareInput import PrepareAudio
 
 
 class PrepareAudioTestCase(unittest.TestCase):
