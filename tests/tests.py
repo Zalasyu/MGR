@@ -3,7 +3,7 @@ import os
 import unittest
 from importlib import import_module
 import sys
-sys.path.insert(1, "MGR//src//data")  # Specify absolute path to PrepareInput
+sys.path.insert(1, "MGR/src/data")  # Specify absolute path to PrepareInput
 prepareInput = import_module('PrepareInput')
 
 
