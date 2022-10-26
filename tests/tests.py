@@ -1,14 +1,18 @@
 # Dependencies
 import os
 import unittest
-from ..src.data.PrepareInput import PrepareAudio
+import sys
+from importlib import import_module
+sys.path.insert(0, "MGR/src/data")
+pi = import_module('PrepareInput')
+pa = pi.PrepareAudio()
 
 
 class PrepareAudioTestCase(unittest.TestCase):
     """Contains various tests intended to be used with
     ...the PrepareAudio class."""
 
-    pa = PrepareAudio()
+    pa = pi.PrepareAudio()
 
     def test1(self):
         """Check if .mp3 file is accepted."""
