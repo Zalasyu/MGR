@@ -1,7 +1,7 @@
 # Dependencies
 import os
 import unittest
-from src.data.PrepareInput import PrepareAudio
+from ..src.data.PrepareInput import PrepareAudio
 
 
 class PrepareAudioTestCase(unittest.TestCase):
