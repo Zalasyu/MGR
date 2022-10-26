@@ -1,4 +1,6 @@
-import path
+# Import path library
+from pathlib import Path
+
 from src.data.PrepareInput import PrepareAudio as pa
 
 
@@ -10,5 +12,5 @@ class TestPrepareAudio():
         """Test that a valid mp3 file is accepted
         """
         audio_prepper = pa()
-        file = path.Path('tests/test_data/validfile_1.mp3')
+        file = Path('tests/test_data/validfile_1.mp3')
         assert audio_prepper.start(file) is True
