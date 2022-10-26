@@ -11,6 +11,4 @@ class TestPrepareAudio():
     def test_mp3_file_accepted(self):
         """Test that a valid mp3 file is accepted
         """
-        audio_prepper = pa()
-        file = Path('tests/test_data/validfile_1.mp3')
-        assert audio_prepper.start(file) is True
+        pass
