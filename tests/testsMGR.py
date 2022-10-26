@@ -1,4 +1,4 @@
-import pytest
+import path
 from src.data.PrepareInput import PrepareAudio as pa
 
 
@@ -10,5 +10,5 @@ class TestPrepareAudio():
         """Test that a valid mp3 file is accepted
         """
         audio_prepper = pa()
-        file = 'data/TestData/validfile_1.mp3'
-        assert audio_prepper.start(file) == True
+        file = path.Path('tests/test_data/validfile_1.mp3')
+        assert audio_prepper.start(file) is True
