@@ -1,0 +1,11 @@
+{
+  "python.analysis.extraPaths": [
+    "./src/data"
+  ],
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "python.analysis.typeCheckingMode": "basic"
+}

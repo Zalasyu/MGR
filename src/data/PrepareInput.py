@@ -1,12 +1,13 @@
-# Dependencies
+""" This module prepares the audio file for further processing. """
+
+import os.path                      # For managing directory files
 import torch                        # Main ML framework
 import torchaudio                   # Main audio processing framework
 import matplotlib.pyplot as plt     # For displaying the graph
-import librosa                      # For converting spectrogram
+import librosa                      # For audio processing
 import librosa.display              # For displaying spectrogram
 import numpy as np                  # For utilizing a numpy array
 from pydub import AudioSegment      # Audio format conversion
-import os.path                      # For managing directory files
 
 
 class PrepareAudio:
@@ -55,13 +56,12 @@ class PrepareAudio:
 
         # 1. Check if file exists. If it does not exist,
         # ...print message and exit return
-        if not os.path.exists(path):
+        if not self.check_file_exists():
             print("The specified file does not exist. Please try again.")
             return False
 
         # 2. Check if the file is accepted
-        file_ext = os.path.splitext(path)[1]  # Extract file extension
-        if file_ext not in self.accepted_file_types:
+        if not self.check_file_type():
             print("The specified file is not accepted. Please try again.")
             return False
 
@@ -70,7 +70,8 @@ class PrepareAudio:
         path = self.convert_to_wav(path)
 
         # 4. Get signal and sample rate of choosen audio file
-        waveform, sr = torchaudio.load(path)
+        waveform, sr = torchaudio.load(path)  # type: ignore
+
         # self.plot_graph(signal, sr, 'Waveform')             # Optional
         # self.plot_graph(signal, sr, 'Vanilla Spectrogram')  # Optional
 
@@ -87,6 +88,28 @@ class PrepareAudio:
         # ...output of this program and input of ML model)
         self.generate_melspec_png(mel_spectrogram[0])
         return True
+
+    def check_file_exists(self, path):
+        """Checks if the specified file exists.
+        Args: Path = path to audio file.
+        Return: True if file exists, False otherwise.
+        """
+
+        if os.path.exists(path):
+            return True
+        else:
+            return False
+
+    def check_file_type(self, path):
+        """Check if the file type is acceptable.
+        Args: Path = path to audio file.
+        Return: True if file is accepted, False otherwise.
+        """
+        file_ext = os.path.splitext(path)[1]  # Extract file extension
+        if file_ext in self.accepted_file_types:
+            return True
+        else:
+            return False
 
     def convert_to_wav(self, path):
         """Converts the input audio file to .wav format and places
@@ -105,7 +128,7 @@ class PrepareAudio:
 
         # Create an Inputs/ folder if it doesnt already exist
         if not os.path.exists('Inputs'):
-            os.mkdir('Inputs')
+            os.mkdir('Inputs')  # type: ignore
 
         # Convert input file to .wav and save to Inputs/ directory
         AudioSegment.from_file(path).export(
@@ -143,12 +166,12 @@ class PrepareAudio:
             axes = [axes]
         for c in range(num_channels):
             if title == "Waveform":
-                axes[c].plot(time_axis, signal[c], linewidth=1)
-                axes[c].grid(True)
+                axes[c].plot(time_axis, signal[c], linewidth=1)  # type: ignore
+                axes[c].grid(True)  # type: ignore
             else:
-                axes[c].specgram(signal[c], Fs=sr)
+                axes[c].specgram(signal[c], Fs=sr)  # type: ignore
             if num_channels > 1:
-                axes[c].set_ylabel(f'Channel {c+1}')
+                axes[c].set_ylabel(f'Channel {c+1}')  # type: ignore
         figure.suptitle(title)
         plt.show(block=True)
 
@@ -161,7 +184,7 @@ class PrepareAudio:
         """
 
         # Convert the power value to a decibel value
-        melspec_db = librosa.power_to_db(melspec, ref=np.max)
+        melspec_db = librosa.power_to_db(melspec, ref=np.max)  # type: ignore
 
         librosa.display.specshow(
             melspec_db, sr=self.sr, hop_length=self.hop_length)
@@ -173,21 +196,21 @@ class PrepareAudio:
 
     def generate_melspec_png(self, melspec):
         """Saves the mel spectrogram as a .png to directory: Outputs/*_ms.png.
-        Note, the output file name is identical to the input file name 
+        Note, the output file name is identical to the input file name
         except with a '_ms" appended to the end.
         Args: melspec = mel spectrogram signal.
         Return: None
         """
 
         # Convert the power value to a decibel value
-        melspec_db = librosa.power_to_db(melspec, ref=np.max)
+        melspec_db = librosa.power_to_db(melspec, ref=np.max)  # type: ignore
         librosa.display.specshow(
             melspec_db, sr=self.sr, hop_length=self.hop_length)
         plt.tight_layout()
 
         # Create Outputs/ directory if it doesnt already exist
         if not os.path.exists('Outputs'):
-            os.makedirs('Outputs')
+            os.makedirs('Outputs')  # type: ignore
 
         # Save mel spectrogram as .png to said directory
         plt.savefig(f"Outputs/{self.file_name}_ms.png")
@@ -198,5 +221,5 @@ if __name__ == "__main__":
     # for the 'file' variable and the class with take care of the rest!
 
     audio_prepper = PrepareAudio()
-    file = 'INSERT PATH TO AUDIO FILE HERE'
+    file = 'PATH_TO_AUDIO_FILE'
     audio_prepper.start(file)
