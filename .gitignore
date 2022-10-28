@@ -10,10 +10,10 @@ __pycache__/
 .idea/
 
 # Training data
-src/data/external/
-src/data/interim/
-src/data/processed/
-src/data/raw/
+data/external/
+data/interim/
+data/processed/
+data/raw/
 
 # Distribution / packaging
 .Python
