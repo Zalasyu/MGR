@@ -6,6 +6,15 @@ __pycache__/
 # C extensions
 *.so
 
+# JetBrains idea
+.idea/
+
+# Training data
+data/external/
+data/interim/
+data/processed/
+data/raw/
+
 # Distribution / packaging
 .Python
 build/
