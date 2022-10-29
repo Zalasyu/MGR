@@ -11,7 +11,8 @@ __pycache__/
 
 # Training data
 data/external/
-data/interim/
+data/interim/*.wav
+data/interim/*.png
 data/processed/
 data/raw/
 
