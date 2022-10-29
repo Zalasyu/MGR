@@ -15,8 +15,8 @@ data/interim/
 data/processed/
 data/raw/
 
-# Numpy arrays
-*.npy
+# Numpy arrays in data folder
+data/*.npy
 
 # Distribution / packaging
 .Python
