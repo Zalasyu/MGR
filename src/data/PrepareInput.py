@@ -19,7 +19,8 @@ class PrepareAudio:
         """Constructor method for PrepareAudio class.
         No values except self.n_mels needs to be tweaked."""
         # Paths for interim data
-        self.INTERIM_DATA_PATH = 'data/interim'
+        self.DATA_PATH = 'data'
+        self.INTERIM_DATA_PATH = os.path.join(self.DATA_PATH, 'interim')
         self.WAV_DATA_PATH = os.path.join(self.INTERIM_DATA_PATH, 'wav')
         self.PNG_DATA_PATH = os.path.join(self.INTERIM_DATA_PATH, 'png')
 
@@ -132,6 +133,8 @@ class PrepareAudio:
         path_to_wav = f'{self.WAV_DATA_PATH}/{self.file_name}.wav'
 
         # Create a wav/ folder if it doesn't already exist
+        if not os.path.isdir(self.DATA_PATH):
+            os.mkdir(self.DATA_PATH)
         if not os.path.isdir(self.INTERIM_DATA_PATH):
             os.mkdir(self.INTERIM_DATA_PATH)  # type: ignore
         if not os.path.isdir(self.WAV_DATA_PATH):
