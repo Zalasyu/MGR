@@ -18,6 +18,10 @@ class PrepareAudio:
     def __init__(self):
         """Constructor method for PrepareAudio class.
         No values except self.n_mels needs to be tweaked."""
+        # Paths for interim data
+        self.INTERIM_DATA_PATH = 'data/interim'
+        self.WAV_DATA_PATH = os.path.join(self.INTERIM_DATA_PATH, 'wav')
+        self.PNG_DATA_PATH = os.path.join(self.INTERIM_DATA_PATH, 'png')
 
         # List of accepted file types (Feel free to add to this as you please)
         self.accepted_file_types = ['.mp3', '.mp4', '.au', '.wav']
@@ -56,16 +60,16 @@ class PrepareAudio:
 
         # 1. Check if file exists. If it does not exist,
         # ...print message and exit return
-        if not self.check_file_exists():
+        if not self.check_file_exists(path):
             print("The specified file does not exist. Please try again.")
             return False
 
         # 2. Check if the file is accepted
-        if not self.check_file_type():
+        if not self.check_file_type(path):
             print("The specified file is not accepted. Please try again.")
             return False
 
-        # 3. Convert audio file to .wav and save to /Inputs directory (Does so
+        # 3. Convert audio file to .wav and save to /interim/wav directory (Does so
         # ...for ALL file types, even .wav for the purpose of uniformity)
         path = self.convert_to_wav(path)
 
@@ -87,7 +91,8 @@ class PrepareAudio:
         # 7. Save image to directory (This img will be the
         # ...output of this program and input of ML model)
         self.generate_melspec_png(mel_spectrogram[0])
-        return True
+        # return True
+        return mel_spectrogram
 
     def check_file_exists(self, path):
         """Checks if the specified file exists.
@@ -113,7 +118,7 @@ class PrepareAudio:
 
     def convert_to_wav(self, path):
         """Converts the input audio file to .wav format and places
-        in directory: Inputs/*.wav. Note, the file name is unchanged
+        in directory data/interim/wav/*.wav. Note, the file name is unchanged
         and only the format is converted.
         Args: Path = path to audio file.
         Return: Path to converted file
@@ -122,15 +127,17 @@ class PrepareAudio:
         # Extract name of file from path variable
         path_parts = os.path.split(path)
         file_name_with_ext = path_parts[len(path_parts)-1]
-        idx = len(file_name_with_ext) - file_name_with_ext.index('.')
+        idx = len(file_name_with_ext) - file_name_with_ext.rindex('.')
         self.file_name = file_name_with_ext[:len(file_name_with_ext)-idx]
-        path_to_wav = f'Inputs/{self.file_name}.wav'
+        path_to_wav = f'{self.WAV_DATA_PATH}/{self.file_name}.wav'
 
-        # Create an Inputs/ folder if it doesnt already exist
-        if not os.path.exists('Inputs'):
-            os.mkdir('Inputs')  # type: ignore
+        # Create a wav/ folder if it doesn't already exist
+        if not os.path.isdir(self.INTERIM_DATA_PATH):
+            os.mkdir(self.INTERIM_DATA_PATH)  # type: ignore
+        if not os.path.isdir(self.WAV_DATA_PATH):
+            os.mkdir(self.WAV_DATA_PATH)
 
-        # Convert input file to .wav and save to Inputs/ directory
+        # Convert input file to .wav and save to wav/ directory
         AudioSegment.from_file(path).export(
             path_to_wav, format='wav')
 
@@ -195,7 +202,7 @@ class PrepareAudio:
         plt.show()
 
     def generate_melspec_png(self, melspec):
-        """Saves the mel spectrogram as a .png to directory: Outputs/*_ms.png.
+        """Saves the mel spectrogram as a .png to directory: interim/png/*_ms.png.
         Note, the output file name is identical to the input file name
         except with a '_ms" appended to the end.
         Args: melspec = mel spectrogram signal.
@@ -208,12 +215,12 @@ class PrepareAudio:
             melspec_db, sr=self.sr, hop_length=self.hop_length)
         plt.tight_layout()
 
-        # Create Outputs/ directory if it doesnt already exist
-        if not os.path.exists('Outputs'):
-            os.makedirs('Outputs')  # type: ignore
+        # Create interim/png/ directory if it doesnt already exist
+        if not os.path.isdir(self.PNG_DATA_PATH):
+            os.makedirs(self.PNG_DATA_PATH)  # type: ignore
 
         # Save mel spectrogram as .png to said directory
-        plt.savefig(f"Outputs/{self.file_name}_ms.png")
+        plt.savefig(f"{self.PNG_DATA_PATH}/{self.file_name}_ms.png")
 
 
 if __name__ == "__main__":
