@@ -15,6 +15,9 @@ data/interim/
 data/processed/
 data/raw/
 
+# Numpy arrays
+*.npy
+
 # Distribution / packaging
 .Python
 build/
