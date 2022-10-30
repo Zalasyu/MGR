@@ -55,7 +55,7 @@ class TestPrepareAudio():
         file_path = 'tests/test_data/validfile_1.mp3'
         self.pa.convert_to_wav(file_path)
         assert os.path.exists(
-            f"{self.pa.WAV_DATA_PATH}/validfile_1.wav")
+            f"{self.pa.WAV_DATA_PATH}/validfile_1.wav") is True
 
 
 class TestTrainingData:
