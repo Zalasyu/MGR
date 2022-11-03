@@ -49,6 +49,12 @@ class TestPrepareAudio():
         file_path = 'tests/test_data/nonexistingFile.mp3'
         assert self.pa.check_file_exists(file_path) is False
 
+    def test_array_data_type(self):
+        """Test that the mel spectrogram array returned is of type list"""
+        file_path = 'tests/test_data/validfile_2.wav'
+        spectrogram_arr = self.pa.start(file_path)
+        assert isinstance(spectrogram_arr, list)
+
 
 class TestTrainingData:
     """
