@@ -15,9 +15,11 @@ class PrepareAudio:
     generating a mel spectrograph that will ultimately serve as the
     input for a machine learning model."""
 
-    def __init__(self):
+    def __init__(self, spectrogram_length=2586):
         """Constructor method for PrepareAudio class.
-        No values except self.n_mels needs to be tweaked."""
+        No values except self.n_mels needs to be tweaked.
+        Optional argument: spectrogram_length designates the length of the img for use in the training model.
+        """
         # Paths for interim data
         self.DATA_PATH = 'data'
         self.INTERIM_DATA_PATH = os.path.join(self.DATA_PATH, 'interim')
@@ -43,6 +45,9 @@ class PrepareAudio:
         # Number of mel bands (Your mel spectrogram willvary depending on
         # ...what value you specify here. Use power of 2: 32, 64 or 128)
         self.n_mels = 64
+
+        # Length of the image array that is output for the model
+        self.spectrogram_length = spectrogram_length
 
         # Transformer object used for wavefrom signal -> mel spectrogram
         self.transformer = torchaudio.transforms.MelSpectrogram(
@@ -92,8 +97,26 @@ class PrepareAudio:
         # 7. Save image to directory (This img will be the
         # ...output of this program and input of ML model)
         self.generate_melspec_png(mel_spectrogram[0])
-        # return True
-        return mel_spectrogram
+        # Reshape the image array to match size of spectrogram_length
+        spectrogram_aray = self.reshape_array(mel_spectrogram[0])
+
+        return spectrogram_aray
+
+    def reshape_array(self, mel_spectrogram):
+        """Reshapes the mel spectrogram array to fit the specified spectrogram length.
+        Takes in original mel spectrogram array.
+        Returns new array.
+        """
+        mel_spectrogram = np.array(mel_spectrogram)         # Convert to numpy array
+        if len(mel_spectrogram[0]) > self.spectrogram_length:
+            # Spectrogram too long, shorten it to the specified length
+            mel_spectrogram = mel_spectrogram[:, :self.spectrogram_length]
+        elif len(mel_spectrogram[0]) < self.spectrogram_length:
+            # Spectrogram is too short, pad it with zeros
+            pad_diff = self.spectrogram_length - len(mel_spectrogram[0])
+            mel_spectrogram = np.pad(mel_spectrogram, ((0, 0), (0, pad_diff)))
+        return mel_spectrogram.tolist()
+
 
     def check_file_exists(self, path):
         """Checks if the specified file exists.
