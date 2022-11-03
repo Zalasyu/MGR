@@ -1,3 +1,9 @@
+"""
+This model was adapted from a demonstration by @sentdex of PythonProgramming.net
+YouTube resource: https://www.youtube.com/watch?v=9aYuQmMJvjA&ab_channel=sentdex
+Text resource: https://pythonprogramming.net/convolutional-neural-networks-deep-learning-neural-network-pytorch/
+"""
+
 import numpy as np
 from tqdm import tqdm
 import torch
