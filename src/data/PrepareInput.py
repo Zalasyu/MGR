@@ -15,9 +15,11 @@ class PrepareAudio:
     generating a mel spectrograph that will ultimately serve as the
     input for a machine learning model."""
 
-    def __init__(self):
+    def __init__(self, spectrogram_length=2586):
         """Constructor method for PrepareAudio class.
-        No values except self.n_mels needs to be tweaked."""
+        No values except self.n_mels needs to be tweaked.
+        Optional argument: spectrogram_length designates the length of the img for use in the training model.
+        """
         # Paths for interim data
         self.DATA_PATH = 'data'
         self.INTERIM_DATA_PATH = os.path.join(self.DATA_PATH, 'interim')
@@ -43,6 +45,9 @@ class PrepareAudio:
         # Number of mel bands (Your mel spectrogram willvary depending on
         # ...what value you specify here. Use power of 2: 32, 64 or 128)
         self.n_mels = 64
+
+        # Length of the image array that is output for the model
+        self.spectrogram_length = spectrogram_length
 
         # Transformer object used for wavefrom signal -> mel spectrogram
         self.transformer = torchaudio.transforms.MelSpectrogram(
