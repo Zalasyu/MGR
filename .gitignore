@@ -13,7 +13,7 @@ __pycache__/
 data/external/
 data/interim/*.wav
 data/interim/*.png
-data/processed/
+data/processed/*.npy
 data/raw/
 
 # Numpy arrays in data folder
