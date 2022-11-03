@@ -140,4 +140,3 @@ class Model():
                         correct += 1
                     total += 1
             print("Accuracy: ", round(correct/total, 3))
-            
