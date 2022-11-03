@@ -97,8 +97,26 @@ class PrepareAudio:
         # 7. Save image to directory (This img will be the
         # ...output of this program and input of ML model)
         self.generate_melspec_png(mel_spectrogram[0])
-        # return True
+        # Reshape the image array to match size of spectrogram_length
+        mel_spectrogram = self.reshape_array(mel_spectrogram[0])
+
         return mel_spectrogram
+
+    def reshape_array(self, mel_spectrogram):
+        """Reshapes the mel spectrogram array to fit the specified spectrogram length.
+        Takes in original mel spectrogram array.
+        Returns new array.
+        """
+        if len(mel_spectrogram[0]) > self.spectrogram_length:
+            # Spectrogram too long, shorten it to the specified length
+            mel_spectrogram = np.array(mel_spectrogram)     # Convert to numpy array
+            mel_spectrogram = mel_spectrogram[:, :self.spectrogram_length].tolist()
+        elif len(mel_spectrogram[0]) < self.spectrogram_length:
+            # Spectrogram is too short, pad it with zeros
+            pad_diff = self.spectrogram_length - len(mel_spectrogram[0])
+            mel_spectrogram = np.pad(mel_spectrogram, ((0, 0), (0, pad_diff))).tolist()
+        return mel_spectrogram
+
 
     def check_file_exists(self, path):
         """Checks if the specified file exists.
