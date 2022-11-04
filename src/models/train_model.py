@@ -95,7 +95,7 @@ class Model():
         # separating training and validation data
         # shape the data (inputting our data size in pixels) - pytorch expects (-1, IMG_SIZE, IMG_SIZE) format
         X = torch.Tensor([i[0] for i in self.training_data]).view(-1, self.spectrogram_width, self.spectrogram_length)
-        # X = X/255.0
+        X = X/255.0
         y = torch.Tensor([i[1] for i in self.training_data])
 
         # separate out testing and validation data
