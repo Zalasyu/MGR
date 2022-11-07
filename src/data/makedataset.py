@@ -53,9 +53,9 @@ class MusicTrainingData:
             for f in os.listdir(os.path.join(data_path, genre)):
                 # Use Librosa to create a spectrograph - Midhun's code
                 img = mel_spectrogram.start(os.path.join(data_path, genre, f))
-                os.path.join(data_path, genre, f)
                 # Add image and label to training data
-                self.training_data.append([np.array(img), np.eye(genre_count)[self.genre_dict[genre]]])
+                label = np.eye(genre_count)[self.genre_dict[genre]]
+                self.training_data.append([img, list(label)])
 
         # Shuffle and save dataset to designated output path
         np.random.shuffle(self.training_data)
