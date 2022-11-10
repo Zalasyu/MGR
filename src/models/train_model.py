@@ -11,14 +11,30 @@ import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
 
+"""
+---Process---
+1. Initialize x number of fully connected layers
+2. Feed data into 1st layer -> run layer through activation function (rectified linear) -> take output as input of next layer into activation func and repeat
+3. Take final output from step 2 and run it through log_softmax function. A softmax is the conversion of x values into a probability distribution of k outcomes.
+   ... So a log softmax is simply the natural log of that probability distribution.
+4. 
+
+"""
+
+
+
+
 
 class Net(nn.Module):
+    """Class representing the Neural Net. Meant to be used for the purpose 
+    of training and utilizing a machine model."""
+
     def __init__(self, classes):
-        super().__init__() # just run the init of parent class (nn.Module)
+        """Constructor method for Net class."""
+        super().__init__()           # Allows access to components of parent class (nn.Module)
         self.spectrogram_width = 64
         self.spectrogram_length = 2586
-        # how many genres
-        self.classes = classes
+        self.classes = classes      # Represents the # of genres
         
         # making the 3 2D convolutional layers
         self.conv1 = nn.Conv2d(1, 32, 5)    # input is 1 image, 32 convolutional features, 5x5 kernel / window size
@@ -30,9 +46,23 @@ class Net(nn.Module):
         x = torch.randn(self.spectrogram_width, self.spectrogram_length)
         x = torch.randn(self.spectrogram_width, self.spectrogram_length).view(-1, 1, self.spectrogram_width, self.spectrogram_length)
         self._to_linear = None
-        self.convs(x)        
-        self.fc1 = nn.Linear(self._to_linear, 512)  # flattening.
+        self.convs(x)
+
+        """Initialize Fully Connected Layers. Linear() takes an input (1st arg) and outputs to each layer
+        The input could be the flattened image (Ex. 28*28 or 784)
+        The output of each layer will be the input for the next
+        Note how the output from the final layer is the number of genres in our music dataset"""
+        self.fc1 = nn.Linear(self._to_linear, 512) 
         self.fc2 = nn.Linear(512, self.classes)     # 512 in, # of classes out
+
+
+    def forward(self, x):
+        x = self.convs(x)
+        x = x.view(-1, self._to_linear)  # .view is reshape ... this flattens X before 
+        x = F.relu(self.fc1(x))          # 'relu' (Rectified Linear) is the activation function
+        x = self.fc2(x)                  # Output layer (Does not need to be run through activation function)
+        return F.softmax(x, dim=1)       # Return log of probability distrubution of # of values in dataset
+
 
     def convs(self, x):
         # max pooling over 2x2, pooling is reducing the image size
@@ -46,15 +76,9 @@ class Net(nn.Module):
             self._to_linear = x[0].shape[0]*x[0].shape[1]*x[0].shape[2]
         return x
 
-    def forward(self, x):
-        x = self.convs(x)
-        x = x.view(-1, self._to_linear)  # .view is reshape ... this flattens X before 
-        x = F.relu(self.fc1(x))
-        x = self.fc2(x)     # bc this is our output layer. No activation here.
-        return F.softmax(x, dim=1)
-
-
 class Model():
+    """xxx"""
+
     def __init__(self, batch_size, epochs, learning_rate, validation_percent, training_data):
         """Constructor method for TrainModel class can tweak epoch batch_size"""
 
@@ -78,7 +102,7 @@ class Model():
         self.spectrogram_length = 2586
 
     def train_model(self, classes):
-        # if your computer is set up to train on the GPU it will use that, otherwise the CPU
+        # Ff your computer is set up to train on the GPU it will use that, otherwise the CPU
         if torch.cuda.is_available():
             device = torch.device("cuda:0")  # 0 is the first GPU, can add more
             print("Running on the GPU")
@@ -89,19 +113,21 @@ class Model():
         # send to neural network to GPU
         net = Net(classes).to(device)
 
-        optimizer = optim.Adam(net.parameters(), lr=self.learning_rate)
+        # Initialize optimizer (Args: all adjustable parameters, learning rate)
+        optimizer = optim.Adam(net.parameters(), lr=self.learning_rate)    
         loss_function = nn.MSELoss()
 
-        # separating training and validation data
-        # shape the data (inputting our data size in pixels) - pytorch expects (-1, IMG_SIZE, IMG_SIZE) format
-        X = torch.Tensor([i[0] for i in self.training_data]).view(-1, self.spectrogram_width, self.spectrogram_length)
-        X = X/255.0
+        # Separate training and validation data
+        # Shape the data (inputting our data size in pixels) - pytorch expects (-1, IMG_SIZE, IMG_SIZE) format
+        X = torch.Tensor([i[0] for i in self.training_data])   
+        X = X.view(-1, self.spectrogram_width, self.spectrogram_length)  # Not neccessary since the tensor is already in this dimension ?
+        X = X/255.0     # Reduce each value in flattened Tensor by a value (255)
         y = torch.Tensor([i[1] for i in self.training_data])
 
-        # separate out testing and validation data
-        val_size = int(len(X)*self.validation_percent)
+        # Separate out testing and validation data
+        val_size = int(len(X)*self.validation_percent)   # = 16*0.1
 
-        # group data into train and test sets
+        # Group data into train and test sets
         train_X = X[:-val_size]
         train_y = y[:-val_size]
 
@@ -125,7 +151,7 @@ class Model():
 
             print(f"Epoch: {epoch}. Loss: {loss}")
 
-            # testing
+            # Testing
             correct = 0
             total = 0
             for i in tqdm(range(0, len(test_X), self.batch_size)):
