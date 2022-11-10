@@ -10,6 +10,7 @@ import torch
 import torch.optim as optim
 import torch.nn as nn
 import torch.nn.functional as F
+from src.data.PrepareInput import PrepareAudio
 
 
 class Net(nn.Module):
@@ -140,3 +141,16 @@ class Model():
                         correct += 1
                     total += 1
             print("Accuracy: ", round(correct/total, 3))
+
+    def predict_song(self, song_path):
+        """Uses the model to predict the genre of a song.
+        song_path: path to a song clip
+        returns
+        """
+        pa = PrepareAudio
+        spectrogram = pa.start(song_path)
+        # Check that the spectrogram transformation was successful
+        if spectrogram[0] is False:
+            # Return the error message from the failed spectrogram transformation
+            return spectrogram[1]
+        return
