@@ -3,10 +3,7 @@ from src.models.train_model import Model
 import time
 
 if __name__ == "__main__":
-    """# Instructions: We have 2 sections, 
-    1) creating the spectograms and numpy array
-    2) building the model
-    The model's variables below can be ajusted to suit the user."""
+    """xxxx"""
     
    
     t0 = time.perf_counter()                # Used for timing
@@ -17,7 +14,7 @@ if __name__ == "__main__":
     t1 = time.perf_counter()
     print(f"Time(s) to build dataset: {round(t1-t0, 2)}")   # Used for timing
 
-
+    # Tweak following value appropriately
     # Classes are how many genres of music we are using
     classes = 8
     # Batch size is how many spectrographs it uses per pass
@@ -29,10 +26,10 @@ if __name__ == "__main__":
     learning_rate = 0.0001
     # Validation sample size
     validation_percent = 0.1
-    # Rraining data path
-    training_data = "data/processed/training_data.npy"
+    # Training data path
+    data_path = "data/processed/training_data.npy"
 
-    model = Model(batch_size, epochs, learning_rate, validation_percent, training_data)
+    model = Model(batch_size, epochs, learning_rate, validation_percent, data_path, classes)
 
     t0 = time.perf_counter()  # Used for timing
     model.train_model(classes)
