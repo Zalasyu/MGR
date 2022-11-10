@@ -68,15 +68,13 @@ class PrepareAudio:
         """
 
         # 1. Check if file exists. If it does not exist,
-        # ...print message and exit return
+        # return False and an error message
         if not self.check_file_exists(path):
-            print("The specified file does not exist. Please try again.")
-            return False
+            return False, "The specified file does not exist. Please try again."
 
         # 2. Check if the file is accepted
         if not self.check_file_type(path):
-            print("The specified file is not accepted. Please try again.")
-            return False
+            return False, "The specified file is not accepted. Please try again."
 
         # Check that the file meets the minimum required song length
         if librosa.get_duration(filename=path) < self.min_song_duration:
