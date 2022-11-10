@@ -15,7 +15,7 @@ class PrepareAudio:
     generating a mel spectrograph that will ultimately serve as the
     input for a machine learning model."""
 
-    def __init__(self, spectrogram_length=2586):
+    def __init__(self, spectrogram_length=2586, min_song_duration=29):
         """Constructor method for PrepareAudio class.
         No values except self.n_mels needs to be tweaked.
         Optional argument: spectrogram_length designates the length of the img for use in the training model.
@@ -49,6 +49,9 @@ class PrepareAudio:
         # Length of the image array that is output for the model
         self.spectrogram_length = spectrogram_length
 
+        # Minimum duration (in seconds) of a song clip for processing
+        self.min_song_duration = min_song_duration
+
         # Transformer object used for wavefrom signal -> mel spectrogram
         self.transformer = torchaudio.transforms.MelSpectrogram(
             sample_rate=self.sr,
@@ -74,6 +77,10 @@ class PrepareAudio:
         if not self.check_file_type(path):
             print("The specified file is not accepted. Please try again.")
             return False
+
+        # Check that the file meets the minimum required song length
+        if librosa.get_duration(filename=path) < self.min_song_duration:
+            return False, f'The specified file must be of at least {self.min_song_duration}seconds in duration.'
 
         # 3. Convert audio file to .wav and save to /interim/wav directory (Does so
         # ...for ALL file types, even .wav for the purpose of uniformity)
