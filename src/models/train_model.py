@@ -1,8 +1,3 @@
-"""
-This model was adapted from a demonstration by @sentdex of PythonProgramming.net
-YouTube resource: https://www.youtube.com/watch?v=9aYuQmMJvjA&ab_channel=sentdex
-Text resource: https://pythonprogramming.net/convolutional-neural-networks-deep-learning-neural-network-pytorch/
-"""
 
 import numpy as np               # For using numpy arrays
 from tqdm import tqdm            # Used for displaying progress bar during runtime
@@ -14,11 +9,10 @@ from torchvision import transforms, datasets
 import random
 import time
 
-
 """
 ----Instructions----
 The main class of concern is the Model class, of which the train_model is the only  
-method that needs to be called sine it makes calls to other other methods appropriately.
+method that needs to be called since it makes calls to other methods appropriately.
 Note, the Net class is not meant to be directly called. 
 
 ----Terminology----
@@ -45,10 +39,12 @@ Note, the Net class is not meant to be directly called.
 
 
 class Net(nn.Module):
-    """xxx"""
+    """Representation of a Netural Network."""
+
     def __init__(self, classes, spec_width, spec_length):
-        """xxx"""
-        super().__init__() # just run the init of parent class (nn.Module)
+        """Constructor class for Net class."""
+
+        super().__init__()   # Specifies you want to access feature of the parent class.
 
         # Initialize variables
         self.classes = classes    # Number of music genres
@@ -92,7 +88,12 @@ class Net(nn.Module):
 
     def convs(self, x):
         """Runs data through each convolutional neuron consecutively. The output of one 
-        will serve as the input for the next and so on. Also sets self._to_linear.""" 
+        will serve as the input for the next and so on. Also sets self._to_linear.
+        *Meant to be called only by Net class (self)
+        
+        args: Tensor
+        return: The result of running tensor through each consecutive neuron
+        """ 
 
         # Run data through each layer in convolutional NN, accumulating (aka pooling) detected features
         for neuron in self.conv_neurons:
@@ -105,10 +106,16 @@ class Net(nn.Module):
         return x
 
     def forward(self, x):
-        """**Not to be directly called. This method is called behind the scenes by pytorch."""
+        """
+        The function through which training/testing will occur
+        *Called automatically every time the class instance is called. Not meant to be directly called. 
+
+        args: x= Tensor
+        return: probability distribution of run
+        """
 
         x = self.convs(x)                 # Get output from running data through convolutional NN
-        x = x.view(-1, self._to_linear)   # Flatten Tensor
+        x = x.view(-1, self._to_linear)   # Flatten/reshape Tensor
 
         # Pass data through each (expect last) Fully Connected (FC) layer, which in turn is put through an activation function (relu aka Rectified Linear)
         for layer in range(len(self.fc_layers)-1):
@@ -123,10 +130,13 @@ class Net(nn.Module):
 
 
 class Model:
-    """xxx"""
+    """The representation of our music genre classifier machine model."""
 
     def __init__(self, batch_size, epochs, learning_rate, validation_percent, data_path, classes):
-        """xxx"""
+        """Constructor method for the Modle class.
+        
+        Args: *Detailed below.
+        """
 
         # Values that will likely need tweaking to optimize model (Trial and Error)
         self.batch_size = batch_size    # Size of data passed through NN at a time
@@ -144,9 +154,9 @@ class Model:
         self.loss_function = nn.MSELoss()   # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
         self.model_name = "Model_MGR_1"     # Model name for writing data to .log file
 
-
     def train_model(self):
-        """xxx"""
+        """Main driver function which allows for training and testing of a dataset.
+        """
         
         # 1. Load Numpy dataset
         data = self.get_data()
@@ -154,7 +164,7 @@ class Model:
         # 2. Convert the data from numpy to a Tensor
         dataset, labelset = self.convert_numpy_to_tensor(data)
 
-        # 3. Scale dataset (Optional step ?)
+        # 3. Scale dataset
         dataset = self.scale_set(dataset)
 
         # 4. Slice a portion of both train dataset and train labelset for training
@@ -166,11 +176,154 @@ class Model:
         test_x = dataset[-val_size:]
         test_y = labelset[-val_size:]
 
-        # 6. Train and Test [Custom implementation]         # !!! If using this step, do not execute the code below
-        self.train_and_test(train_x, train_y, test_x, test_y)    # [Optional] Custom function for training + testing  
-        quit()
+        # 6. Train and Test [Custom implementation] 
+        self.train_and_test(train_x, train_y, test_x, test_y) 
+        return
 
-        # 6. Train and Test [Original]    *NONFUNCTIONAL This throws errors*
+        # 6 v2. Train and Test [Original]    *NONFUNCTIONAL This throws errors*
+        self.train_and_test_v2(train_x, train_y, test_x, test_y)
+
+
+
+    # Dataset management/manipulation methods
+    def get_device(self):
+        """Called by constructor once to set the device on which trainig/testing will occur.
+        return: device instance to run model (i.e. CPU or cuda GPU)
+        """
+
+        """xxx"""
+        if torch.cuda.is_available():
+            device = torch.device("cuda:0")  # 0 is the first GPU, can add more
+            print("Running on the GPU")
+        else:
+            device = torch.device("cpu")
+            print("Running on the CPU")
+        return device
+        
+    def get_data(self):
+        """Loads the numpy array.
+        return: Loaded dataset
+        """
+        return np.load(f"{self.data_path}", allow_pickle=True)
+
+    def convert_numpy_to_tensor(self, data):
+        """Converts the numpy array to a Tensor so that it can be utilzed by the model.
+        args: data= loaded numpy dataset
+        return: dataset tensor and label tensor   
+        """
+        # Create tensor from dataset
+        data_tensor = torch.Tensor([i[0] for i in data])
+        data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length) # Reshape tensor
+
+        # Create tensor of labels (aka one hot vectors)
+        label_tensor = torch.Tensor([i[1] for i in data])
+
+        return (data_tensor, label_tensor)
+
+    def scale_set(self, set):
+        """Scales the entire dataset so that all value are between 0 and 1.
+        args: datasor (tensor)
+        return: scaled tensor
+        """
+        # Scale all images so that all pixel values are between 0 and 1. This is done by dividing all values by the max val
+        max_val = 0   # Find maximum value across all Tensors
+        for genre in set:
+            for song in genre: 
+                for pixel in song:
+                    if pixel > max_val:
+                        max_val = pixel
+        return set/max_val    # Divide all values across Tensors by the largest value and return
+
+
+    # Training and testing (validation) methods
+    def train_and_test(self, train_x, train_y, test_x, test_y):
+        """Oversees the training and validation process.
+        args: train_x= training dataset, train_y = training labelset
+              test_x= validation dataset, test_y = validation labelset
+        """
+
+        for e in range(self.epochs):   # Make self.epoch number of runs through trainset/testset      
+            matches = 0   # Tracks number of correct predictions
+            total = 0     # Tracks total number of elements. Value will differ based on how the testset was split (regardless of batch size)
+
+            # Train + test in batches
+            for i in range(0, len(train_x), self.batch_size):
+                # A. Use slicing to construct train batch
+                train_batch_x = train_x[i:i+self.batch_size]       # Get dataset batch
+                train_batch_x = train_batch_x.view(-1, 1, self.spec_width, self.spec_length)  # Reshape tensor
+                train_batch_y = train_y[i:i+self.batch_size]       # Get label batch
+                train_batch_x, train_batch_y = train_batch_x.to(self.device), train_batch_y.to(self.device)   # Load onto choosen device
+
+                # B. Use slicing to construct test batch
+                test_batch_x = test_x[i:i+self.batch_size]
+                test_batch_x = test_batch_x.view(-1, 1, self.spec_width, self.spec_length)   # Get data in batch and load to GPU
+                test_batch_y = test_y[i:i+self.batch_size].to(self.device)             # Get label pertaining to current batch and load to GPU
+                test_batch_x, test_batch_y = test_batch_x.to(self.device), test_batch_y.to(self.device)   # Load onto choosen device
+
+                # C. Train (Run trainset through NN)
+                batch_loss = self.train_mod(train_batch_x, train_batch_y)
+
+                # D. Test/validate (Run testset through NN)
+                batch_matches, batch_total, l = self.test_mod(test_batch_x, test_batch_y)
+
+                # E. Update counters
+                matches += batch_matches
+                total += batch_total
+
+            # Print to visualize changes post epoch run
+            print(f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)},Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
+
+    def train_mod(self, batch_x, batch_y):
+        """Runs data through the neural network for the purpose of training.
+        args: batch_x= slice of original dataset, bach_y = slice of corresponding labelset
+        return: loss from training
+        """
+
+        # Zero the gradient. The gradient stores your losses, allowing your optimizer to look through it and
+        # ... optimize weights accordingly. Since we initialized the optimizer with the net class parameters, 
+        # ... we can just call zero_grad on the optimizer rather that the NN
+        self.optimizer.zero_grad()   # Call before every time you pass the data through the Neural Network
+
+        output = self.net(batch_x)  # Run batch through NN
+        loss = self.loss_function(output, batch_y)   # Get loss from output
+        loss.backward()         # Backwards propagate the loss
+        self.optimizer.step()   # Perform the actual optimization
+        
+        return loss
+
+    def test_mod(self, batch_x, batch_y):
+        """Runs data through the neural network for the purpose of testing/validation.
+        args: batch_x= slice of original dataset, bach_y = slice of corresponding labelset
+        return: a tuple consisting of the accuracy, total values in batch, and loss that resulted from testing
+        """
+
+        with torch.no_grad():  # Run without gradient since we are not training
+            batch_out = self.net(batch_x)   # Run through NN
+
+        out_maxes = [torch.argmax(i) for i in batch_out]   # Get output from NN
+        target_maxes = [torch.argmax(i) for i in batch_y]  # Variabilize correct matches
+
+        # Check if any predictions were correct and record
+        correct = 0 
+        total = 0 
+        for i,j in zip(out_maxes, target_maxes):
+            if i == j:
+                correct += 1
+            total += 1
+        
+        # Compute the loss
+        loss = self.loss_function(batch_out, batch_y)
+
+        return (correct, total, loss)     # Return accuracy of determination(s)
+
+
+    # Prototype/Unused method from original implmentation
+    def train_and_test_v2(self, train_x, train_y, test_x,  test_y):
+        """Alternative version of train_and_test.
+
+        *NON-FUNCTIONAL
+        """
+
         model_log = open('model.log', 'a')  # Initialize .log file to store stats onto
         create_file = True         # Set to False if you do not want to log data
         for epoch in range(self.epochs):
@@ -188,17 +341,10 @@ class Model:
                     val_acc, val_loss = self.test(test_x, test_y, size=32)
                     model_log.write(f"{self.model_name},{round(time.time(),3)},{round(float(acc),2)},{round(float(loss), 4)},{round(float(val_acc),2)},{round(float(val_loss),4)},{epoch}\n")
 
-
-            # Print Epoch results
-            print(f"Epoch[{epoch}/{self.epochs}")
-
-
-
-
-
-   
     def fwd_pass(self, x, y, train=False):
-        """Can be used for training or testing."""
+        """Can be used for training or testing.
+        *Called by train_and_test_v2
+        """
 
         # If training, zero the gradient.
         if train:
@@ -221,7 +367,9 @@ class Model:
         return accuracy, loss
 
     def test(self, test_x, test_y, size=32):
-        """xxx"""
+        """Method for testing.
+        *train_and_test_v2
+        """
 
         random_start = random.randint(0, len(test_x))-size
 
@@ -235,127 +383,3 @@ class Model:
 
         # Get accurary and loss
         return accuracy, loss
-
-    def get_device(self):
-        """xxx"""
-        if torch.cuda.is_available():
-            device = torch.device("cuda:0")  # 0 is the first GPU, can add more
-            print("Running on the GPU")
-        else:
-            device = torch.device("cpu")
-            print("Running on the CPU")
-        return device
-        
-    def get_data(self):
-        """xxx"""
-        return np.load(f"{self.data_path}", allow_pickle=True)
-
-    def convert_numpy_to_tensor(self, data):
-        """xxx"""
-        # Create tensor from dataset
-        data_tensor = torch.Tensor([i[0] for i in data])
-        data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length) # Reshape tensor
-
-        # Create tensor of labels (aka one hot vectors)
-        label_tensor = torch.Tensor([i[1] for i in data])
-
-        return (data_tensor, label_tensor)
-
-    def scale_set(self, set):
-        """xxx"""
-        # Scale all images so that all pixel values are between 0 and 1. This is done by dividing all values by the max val
-        max_val = 0   # Find maximum value across all Tensors
-        for genre in set: # 16
-            for song in genre: # 64
-                for pixel in song:  # 2586
-                    if pixel > max_val:
-                        max_val = pixel
-        return set/max_val    # Divide all values across Tensors by the largest value
-
-    def train_and_test(self, train_x, train_y, test_x, test_y):
-        """xxx"""
-        for e in range(self.epochs):   # Make self.epoch number of runs through trainset/testset      
-            matches = 0   # Tracks number of correct predictions
-            total = 0     # Tracks total number of elements. Value will differ based on how the testset was split (regardless of batch size)
-
-            # Train + test in batches
-            for i in range(0, len(train_x), self.batch_size):
-                # A. Use slicing to construct train batch
-                train_batch_x = train_x[i:i+self.batch_size]       # Get dataset batch
-                train_batch_x = train_batch_x.view(-1, 1, self.spec_width, self.spec_length)  # Reshape tensor
-                train_batch_y = train_y[i:i+self.batch_size]       # Get label batch
-                train_batch_x, train_batch_y = train_batch_x.to(self.device), train_batch_y.to(self.device)   # Load onto choosen device
-
-                # B. Use slicing to construct test batch
-                test_batch_x = test_x[i:i+self.batch_size]
-                test_batch_x = test_batch_x.view(-1, 1, self.spec_width, self.spec_length)   # Get data in batch and load to GPU
-                test_batch_y = test_y[i:i+self.batch_size].to(self.device)             # Get label pertaining to current batch and load to GPU
-                test_batch_x, test_batch_y = test_batch_x.to(self.device), test_batch_y.to(self.device)   # Load onto choosen device
-
-                # C. Run trainset through NN
-                batch_loss = self.train_with_nn(train_batch_x, train_batch_y)
-
-                # D. Run testset through NN
-                batch_matches, batch_total, l = self.test_with_nn(test_batch_x, test_batch_y)
-
-                # E. Update counters
-                matches += batch_matches
-                total += batch_total
-
-            # Print to visualize changes post epoch run
-            print(f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)},Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
-
-    def train_with_nn(self, batch_x, batch_y):
-        """xxx"""
-
-        # Zero the gradient. The gradient stores your losses, allowing your optimizer to look through it and
-        # ... optimize weights accordingly. Since we initialized the optimizer with the net class parameters, 
-        # ... we can just call zero_grad on the optimizer rather that the NN
-        self.optimizer.zero_grad()   # Call before every time you pass the data through the Neural Network
-
-        output = self.net(batch_x)  # Run batch through NN
-        loss = self.loss_function(output, batch_y)   # Get loss from output
-        loss.backward()         # Backwards propagate the loss
-        self.optimizer.step()   # Perform the actual optimization
-        
-        return loss
-
-    def test_with_nn(self, batch_x, batch_y):
-        """xxx"""
-
-        with torch.no_grad():  # Run without gradient since we are not training
-            batch_out = self.net(batch_x)   # Run through NN
-
-        out_maxes = [torch.argmax(i) for i in batch_out]   # Get output from NN
-        target_maxes = [torch.argmax(i) for i in batch_y]  # Variabilize correct matches
-
-        # Check if any predictions were correct and record
-        correct = 0 
-        total = 0 
-        for i,j in zip(out_maxes, target_maxes):
-            if i == j:
-                correct += 1
-            total += 1
-        
-        # Compute the loss
-        loss = self.loss_function(batch_out, batch_y)
-
-        return (correct, total, loss)     # Return accuracy of determination(s)
-
-
-
-
-
-if __name__ == "__main__":
-    pass
-    t = True
-    if t:
-        batchsize = 3
-        epochs = 100
-        learningrate = 0.0001
-        validationpercent = 0.1  # The higher this value, the smaller the size of training dataset and greater the size of testing dataset and vice versa.
-        datapath = "data/processed/training_data.npy"
-        classes = 10
-
-        model = Model(batchsize, epochs, learningrate, validationpercent, datapath, classes)     # Create model instance
-        model.train_model()     # Train model
