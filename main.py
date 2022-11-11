@@ -33,4 +33,5 @@ if __name__ == "__main__":
     t0 = time.perf_counter()  # Used for timing
     model.train_model()
     t1 = time.perf_counter()
-    print(f"Model traing comleted in {round(t1-t0, 2)} seconds.")   # Used for timing
+    print(f"Model training completed in {round(t1-t0, 2)} seconds.")   # Used for timing
+    
