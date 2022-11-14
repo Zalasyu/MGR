@@ -1,6 +1,7 @@
 import os
 import numpy as np
 from src.data.PrepareInput import PrepareAudio
+import json
 
 
 class MusicTrainingData:
@@ -20,7 +21,7 @@ class MusicTrainingData:
         self.training_data = []
         self.genre_dict = {}
 
-    def create_genre_dictionary(self, path):
+    def create_genre_dictionary(self, data_path, output_path):
         """
         Creates a dictionary using the names of the objects at a
         specified path. The objects should be directories that
@@ -28,9 +29,11 @@ class MusicTrainingData:
         """
         self.genre_dict = {}
         genre_count = 0
-        for g in os.listdir(path):
+        for g in os.listdir(data_path):
             self.genre_dict[g] = genre_count
             genre_count += 1
+        # Save dictionary to output path
+        self.save_genre_dict(output_path)
 
     def get_genre_dictionary(self):
         """
@@ -44,7 +47,7 @@ class MusicTrainingData:
         the genre dictionary to create a one-hot vector. Processes
         all files within genre-labeled directories at a specified path.
         """
-        self.create_genre_dictionary(data_path)
+        self.create_genre_dictionary(data_path, output_path)
         genre_count = len(self.genre_dict)
         mel_spectrogram = PrepareAudio()
         # Iterate through all genres
@@ -60,3 +63,11 @@ class MusicTrainingData:
         # Shuffle and save dataset to designated output path
         np.random.shuffle(self.training_data)
         np.save(os.path.join(output_path, 'training_data.npy'), self.training_data)
+
+    def save_genre_dict(self, output_path):
+        """
+        Saves the genre dictionary to a specified output path.
+        """
+        file_path = os.path.join(output_path, 'genre_dict.txt')
+        with open(file_path, 'w') as dict_file:
+            dict_file.write(json.dumps(self.genre_dict))

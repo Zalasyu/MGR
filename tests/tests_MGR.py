@@ -71,7 +71,8 @@ class TestTrainingData:
     def test_create_genre_dictionary(self):
         """Test that a genre dictionary has been built"""
         genre_path = 'tests/test_data/Genres'
-        self.td.create_genre_dictionary(genre_path)
+        output_path = 'tests/test_data'
+        self.td.create_genre_dictionary(genre_path, output_path)
         assert len(self.td.get_genre_dictionary()) == 2
 
     def test_build_dataset(self):
