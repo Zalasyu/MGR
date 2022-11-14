@@ -166,7 +166,7 @@ class Model:
         dataset, labelset = self.convert_numpy_to_tensor(data)
 
         # 3. Scale dataset
-        dataset = self.scale_set(dataset)
+        # dataset = self.scale_set(dataset)
 
         # 4. Slice a portion of both train dataset and train labelset for training
         val_size = int(len(dataset)*self.validation_percent)    # Get int for slicing dataset
@@ -385,16 +385,26 @@ class Model:
         # Get accurary and loss
         return accuracy, loss
 
+    def img_arr_to_tensor(self, arr):
+        """Converts an image (mel-spectrogram) to a tensor to be given to the model.
+        args: arr = image array
+        returns: tensor instance of the arr"""
+        data_tensor = torch.Tensor(arr)
+        data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length)  # Reshape tensor
+        return data_tensor
+
     def predict_song(self, song_path):
         """Uses the model to predict the genre of a song.
         song_path: path to a song clip
         returns
         """
-        pa = PrepareAudio
+        pa = PrepareAudio()
         spectrogram = pa.start(song_path)
         # Check that the spectrogram transformation was successful
         if spectrogram[0] is False:
             # Return the error message from the failed spectrogram transformation
             return spectrogram[1]
-        return
+        # Convert the spectrogram to a data tensor
+        data_tensor = self.img_arr_to_tensor(spectrogram)
+        return self.net(data_tensor)
 
