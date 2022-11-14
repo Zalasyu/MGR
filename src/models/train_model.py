@@ -384,3 +384,4 @@ class Model:
         # Get accurary and loss
         return accuracy, loss
 
+
