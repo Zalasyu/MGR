@@ -99,7 +99,6 @@ class PrepareAudio:
         self.generate_melspec_png(mel_spectrogram[0])
         # Reshape the image array to match size of spectrogram_length
         spectrogram_aray = self.reshape_array(mel_spectrogram[0])
-
         return spectrogram_aray
 
     def reshape_array(self, mel_spectrogram):
@@ -251,8 +250,8 @@ class PrepareAudio:
 
 if __name__ == "__main__":
     # Instructions: Specify a valid path to desired audio file
-    # for the 'file' variable and the class with take care of the rest!
-
+    # for the 'file' variable and the class will take care of the rest!
+ 
     audio_prepper = PrepareAudio()
-    file = 'PATH_TO_AUDIO_FILE'
+    file = 'tests/test_data/validfile_2.wav'
     audio_prepper.start(file)

@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# venv
+mgr_venv
+
+# For testing
+z.py
+z2.py
+
 # C extensions
 *.so
 
@@ -14,7 +21,7 @@ data/external/
 data/interim/*.wav
 data/interim/*.png
 data/processed/*.npy
-data/raw/
+data/raw/*
 
 # Numpy arrays in data folder
 data/*.npy
