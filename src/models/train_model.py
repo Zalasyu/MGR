@@ -9,6 +9,7 @@ from torchvision import transforms, datasets
 import random
 import time
 from src.data.PrepareInput import PrepareAudio
+import json
 
 """
 ----Instructions----
@@ -133,7 +134,7 @@ class Net(nn.Module):
 class Model:
     """The representation of our music genre classifier machine model."""
 
-    def __init__(self, batch_size, epochs, learning_rate, validation_percent, data_path, classes):
+    def __init__(self, batch_size, epochs, learning_rate, validation_percent, data_path, dict_path):
         """Constructor method for the Modle class.
         
         Args: *Detailed below.
@@ -146,10 +147,11 @@ class Model:
         self.validation_percent = validation_percent   # Value that will be modified to represent % of dataset that we will be training/testing
         self.spec_width = 64         # Spectrogram dimension
         self.spec_length = 2586      # Spectrogram dimension
-        self.classes = classes       # Number of genres
 
-        self.data_path = data_path          # Directory path to data (.npy)
-        self.device = self.get_device()     # Initialize hardware to run model on (CPU or GPU)
+        self.data_path = data_path              # Directory path to data (.npy)
+        self.genre_dict = self.genre_file_to_dict(dict_path)    # Genre dictionary with genre names
+        self.classes = len(self.genre_dict)     # Number of genres
+        self.device = self.get_device()         # Initialize hardware to run model on (CPU or GPU)
         self.net = Net(self.classes, self.spec_width, self.spec_length).to(self.device)   # Initialize neural net instance
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)  # Initialize optimizer. Args(adjustable parameters, learning rate)
         self.loss_function = nn.MSELoss()   # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
@@ -406,5 +408,22 @@ class Model:
             return spectrogram[1]
         # Convert the spectrogram to a data tensor
         data_tensor = self.img_arr_to_tensor(spectrogram)
-        return self.net(data_tensor)
+        results = self.net(data_tensor).tolist()            # Get results from the neural network
+        results = results[0]                                # First result set in the results
+        self.print_prediction_results(results)
+        return results
 
+    def genre_file_to_dict(self, dict_path):
+        """Reads in the path to a genre dictionary and converts it into a python dictionary.
+        args: dict_path = path to the .txt file containing a json object of the genre dict.
+        """
+        # Open json file
+        file = open(dict_path)
+        return json.load(file)
+
+    def print_prediction_results(self, results):
+        """Prints the prediction results using the genre dictionary."""
+        for genre in self.genre_dict:
+            i = self.genre_dict[genre]
+            print(f'{genre}: {results[i]*100}%')
+        return
