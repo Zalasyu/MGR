@@ -78,7 +78,7 @@ class PrepareAudio:
 
         # Check that the file meets the minimum required song length
         if librosa.get_duration(filename=path) < self.min_song_duration:
-            return False, f'The specified file must be of at least {self.min_song_duration}seconds in duration.'
+            return False, f'The specified file must be of at least {self.min_song_duration} seconds in duration.'
 
         # 3. Convert audio file to .wav and save to /interim/wav directory (Does so
         # ...for ALL file types, even .wav for the purpose of uniformity)
@@ -108,6 +108,7 @@ class PrepareAudio:
 
     def reshape_array(self, mel_spectrogram):
         """Reshapes the mel spectrogram array to fit the specified spectrogram length.
+        Normalizes the values in the array.
         Takes in original mel spectrogram array.
         Returns new array.
         """
@@ -119,8 +120,9 @@ class PrepareAudio:
             # Spectrogram is too short, pad it with zeros
             pad_diff = self.spectrogram_length - len(mel_spectrogram[0])
             mel_spectrogram = np.pad(mel_spectrogram, ((0, 0), (0, pad_diff)))
+        # Normalize the array to values between 0 and 1
+        mel_spectrogram = mel_spectrogram / np.linalg.norm(mel_spectrogram)
         return mel_spectrogram.tolist()
-
 
     def check_file_exists(self, path):
         """Checks if the specified file exists.
