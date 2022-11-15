@@ -116,7 +116,6 @@ class PrepareAudio:
             mel_spectrogram = np.pad(mel_spectrogram, ((0, 0), (0, pad_diff)))
         return mel_spectrogram.tolist()
 
-
     def check_file_exists(self, path):
         """Checks if the specified file exists.
         Args: Path = path to audio file.

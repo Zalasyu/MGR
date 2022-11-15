@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     # 2. Specify parameters (Tweak following value appropriately)
     classes = 10              # Number of genres in dataset
-    batch_size = 3            # Slice of data that will be passed into model at a time
-    epochs = 100              # Specifies number of runs through dataset
+    batch_size = 5            # Slice of data that will be passed into model at a time
+    epochs = 10               # Specifies number of runs through dataset
     learning_rate = 0.0001    # Rate of optimization (How fast it learns)
     validation_percent = 0.1  # Percent of sliced dataset that will be used for validating/testing
     data_path = "data/processed/training_data.npy"   # Path to dataset
@@ -34,4 +34,3 @@ if __name__ == "__main__":
     model.train_model()
     t1 = time.perf_counter()
     print(f"Model training completed in {round(t1-t0, 2)} seconds.")   # Used for timing
-    

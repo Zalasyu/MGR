@@ -33,7 +33,6 @@ Note, the Net class is not meant to be directly called.
 ----Issues----
 1. Couldnt chart output from training and testing
 2. Couldnt construct neural network of convolutional neurons iteratively in the constructor method of the Net class. So each neuron had to be defined line-by-line
-
 """
 
 
@@ -82,7 +81,7 @@ class Net(nn.Module):
         self.convs(x)    # Call conv() to set self._to_linear aka initial input
 
         # Initialize fully connected layers
-        self.fc1 = nn.Linear(self._to_linear, 512) 
+        self.fc1 = nn.Linear(self._to_linear, 512)
         self.fc2 = nn.Linear(512, self.classes)
         self.fc_layers = [self.fc1, self.fc2]  # Initialize a layer array (Minimum 2)
 
@@ -128,7 +127,6 @@ class Net(nn.Module):
 
 
 
-
 class Model:
     """The representation of our music genre classifier machine model."""
 
@@ -159,13 +157,16 @@ class Model:
         """
         
         # 1. Load Numpy dataset
+        print("--> Loading numpy dataset...")
         data = self.get_data()
 
         # 2. Convert the data from numpy to a Tensor
         dataset, labelset = self.convert_numpy_to_tensor(data)
+        print("--> Converting dataset to tensors...")
 
         # 3. Scale dataset
         dataset = self.scale_set(dataset)
+        print("--> Scaling dataset...")
 
         # 4. Slice a portion of both train dataset and train labelset for training
         val_size = int(len(dataset)*self.validation_percent)    # Get int for slicing dataset
@@ -176,7 +177,8 @@ class Model:
         test_x = dataset[-val_size:]
         test_y = labelset[-val_size:]
 
-        # 6. Train and Test [Custom implementation] 
+        # 6. Train and Test [Custom implementation]
+        print("--> Training dataset...")
         self.train_and_test(train_x, train_y, test_x, test_y) 
         return
 
