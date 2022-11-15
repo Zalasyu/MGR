@@ -20,15 +20,9 @@ if __name__ == "__main__":
 
 
     # 2. Specify parameters (Tweak following value appropriately)
-<<<<<<< HEAD
     classes = 10              # Number of genres in dataset
     batch_size = 5            # Slice of data that will be passed into model at a time
     epochs = 10               # Specifies number of runs through dataset
-=======
-    # classes = 10              # Number of genres in dataset NOT USED IN MODEL
-    batch_size = 3            # Slice of data that will be passed into model at a time
-    epochs = 100              # Specifies number of runs through dataset
->>>>>>> dd74b95e865d625b5e68d3e851fbd2f2d06a36a9
     learning_rate = 0.0001    # Rate of optimization (How fast it learns)
     validation_percent = 0.1  # Percent of sliced dataset that will be used for validating/testing
     data_path = "data/processed/training_data.npy"   # Path to dataset
