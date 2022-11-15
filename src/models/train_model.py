@@ -161,12 +161,12 @@ class Model:
         data = self.get_data()
 
         # 2. Convert the data from numpy to a Tensor
-        dataset, labelset = self.convert_numpy_to_tensor(data)
         print("--> Converting dataset to tensors...")
+        dataset, labelset = self.convert_numpy_to_tensor(data)
 
         # 3. Scale dataset
-        dataset = self.scale_set(dataset)
         print("--> Scaling dataset...")
+        dataset = self.scale_set(dataset)
 
         # 4. Slice a portion of both train dataset and train labelset for training
         val_size = int(len(dataset)*self.validation_percent)    # Get int for slicing dataset
