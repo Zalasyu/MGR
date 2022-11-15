@@ -8,6 +8,8 @@ import torch.nn.functional as F  # To use a variety built in functions such as a
 from torchvision import transforms, datasets
 import random
 import time
+from src.data.PrepareInput import PrepareAudio
+import json
 
 """
 ----Instructions----
@@ -130,7 +132,7 @@ class Net(nn.Module):
 class Model:
     """The representation of our music genre classifier machine model."""
 
-    def __init__(self, batch_size, epochs, learning_rate, validation_percent, data_path, classes):
+    def __init__(self, batch_size, epochs, learning_rate, validation_percent, data_path, dict_path):
         """Constructor method for the Modle class.
         
         Args: *Detailed below.
@@ -143,10 +145,11 @@ class Model:
         self.validation_percent = validation_percent   # Value that will be modified to represent % of dataset that we will be training/testing
         self.spec_width = 64         # Spectrogram dimension
         self.spec_length = 2586      # Spectrogram dimension
-        self.classes = classes       # Number of genres
 
-        self.data_path = data_path          # Directory path to data (.npy)
-        self.device = self.get_device()     # Initialize hardware to run model on (CPU or GPU)
+        self.data_path = data_path              # Directory path to data (.npy)
+        self.genre_dict = self.genre_file_to_dict(dict_path)    # Genre dictionary with genre names
+        self.classes = len(self.genre_dict)     # Number of genres
+        self.device = self.get_device()         # Initialize hardware to run model on (CPU or GPU)
         self.net = Net(self.classes, self.spec_width, self.spec_length).to(self.device)   # Initialize neural net instance
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)  # Initialize optimizer. Args(adjustable parameters, learning rate)
         self.loss_function = nn.MSELoss()   # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
@@ -165,8 +168,12 @@ class Model:
         dataset, labelset = self.convert_numpy_to_tensor(data)
 
         # 3. Scale dataset
+<<<<<<< HEAD
         print("--> Scaling dataset...")
         dataset = self.scale_set(dataset)
+=======
+        # dataset = self.scale_set(dataset)
+>>>>>>> dd74b95e865d625b5e68d3e851fbd2f2d06a36a9
 
         # 4. Slice a portion of both train dataset and train labelset for training
         val_size = int(len(dataset)*self.validation_percent)    # Get int for slicing dataset
@@ -385,3 +392,44 @@ class Model:
 
         # Get accurary and loss
         return accuracy, loss
+
+    def img_arr_to_tensor(self, arr):
+        """Converts an image (mel-spectrogram) to a tensor to be given to the model.
+        args: arr = image array
+        returns: tensor instance of the arr"""
+        data_tensor = torch.Tensor(arr)
+        data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length)  # Reshape tensor
+        return data_tensor
+
+    def predict_song(self, song_path):
+        """Uses the model to predict the genre of a song.
+        song_path: path to a song clip
+        returns
+        """
+        pa = PrepareAudio()
+        spectrogram = pa.start(song_path)
+        # Check that the spectrogram transformation was successful
+        if spectrogram[0] is False:
+            # Return the error message from the failed spectrogram transformation
+            return spectrogram[1]
+        # Convert the spectrogram to a data tensor
+        data_tensor = self.img_arr_to_tensor(spectrogram)
+        results = self.net(data_tensor).tolist()            # Get results from the neural network
+        results = results[0]                                # First result set in the results
+        self.print_prediction_results(results)
+        return results
+
+    def genre_file_to_dict(self, dict_path):
+        """Reads in the path to a genre dictionary and converts it into a python dictionary.
+        args: dict_path = path to the .txt file containing a json object of the genre dict.
+        """
+        # Open json file
+        file = open(dict_path)
+        return json.load(file)
+
+    def print_prediction_results(self, results):
+        """Prints the prediction results using the genre dictionary."""
+        for genre in self.genre_dict:
+            i = self.genre_dict[genre]
+            print(f'{genre}: {results[i]*100}%')
+        return
