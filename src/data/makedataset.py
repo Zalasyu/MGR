@@ -130,7 +130,8 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # The number of processes is the number of CPU cores
         # This is a CPU-Bound task
         print("Starting ETL process for genre: {}".format(genre))
-        core_count = mpr.Semaphore(mpr.cpu_count())
+        core_count = mpr.cpu_count() - 1
+
         print("Number of cores: {}".format(core_count))
         with Pool(processes=core_count) as pool:
             # pool.starmap() will call the function with multiple arguments
