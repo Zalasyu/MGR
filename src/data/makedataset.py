@@ -75,7 +75,6 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
     Advanced version uses multiprocessing to speed up ETL process
     """
 
-    # TODO: Decompose Transform and Load into separate functions
     def etl_one_audio_file(self, genre: str, file: str, data_path: str, output_path: str):
         """ Process one audio file. Calls the transform and load functions.
 
@@ -92,7 +91,6 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # Create Mel Spectrogram
         mel_img = mel_gen.start(os.path.join(data_path, genre, file))
 
-        # Load
         # Create one-hot vector
         label = np.eye(len(self.genre_dict))[self.genre_dict[genre]]
         self.training_data.append([mel_img, list(label)])
@@ -114,6 +112,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # Create a pool of processes
         # The number of processes is the number of CPU cores
         # This is a CPU-Bound task
+        print("Starting ETL process for genre: {}".format(genre))
         with Pool() as pool:
             # pool.starmap() will call the function with multiple arguments
             # starmap: Pass multiple arguments to the function
@@ -144,5 +143,21 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # Get all genre directories
         genres = os.listdir(data_path)
 
+        print("Starting ETL process...")
+        # Process each genre directory
         for genre in genres:
             self._process_genre(genre, data_path, output_path)
+
+        # Load data to output directory
+        self.save_training_data(output_path)
+
+    def save_training_data(self, output_path: str):
+        """ Save training data to output directory
+
+        Args:
+            output_path (str): Path to output directory
+        """
+        print("Saving training data...")
+        # Shuffle and save dataset to designated output path
+        np.random.shuffle(self.training_data)
+        np.save(os.path.join(output_path, 'training_data.npy'), self.training_data)
