@@ -15,7 +15,7 @@ class PrepareAudio:
     generating a mel spectrograph that will ultimately serve as the
     input for a machine learning model."""
 
-    def __init__(self, spectrogram_length=2586):
+    def __init__(self, spectrogram_length=2586, min_song_duration=29):
         """Constructor method for PrepareAudio class.
         No values except self.n_mels needs to be tweaked.
         Optional argument: spectrogram_length designates the length of the img for use in the training model.
@@ -49,6 +49,9 @@ class PrepareAudio:
         # Length of the image array that is output for the model
         self.spectrogram_length = spectrogram_length
 
+        # Minimum duration (in seconds) of a song clip for processing
+        self.min_song_duration = min_song_duration
+
         # Transformer object used for wavefrom signal -> mel spectrogram
         self.transformer = torchaudio.transforms.MelSpectrogram(
             sample_rate=self.sr,
@@ -65,15 +68,17 @@ class PrepareAudio:
         """
 
         # 1. Check if file exists. If it does not exist,
-        # ...print message and exit return
+        # return False and an error message
         if not self.check_file_exists(path):
-            print("The specified file does not exist. Please try again.")
-            return False
+            return False, "The specified file does not exist. Please try again."
 
         # 2. Check if the file is accepted
         if not self.check_file_type(path):
-            print("The specified file is not accepted. Please try again.")
-            return False
+            return False, "The specified file is not accepted. Please try again."
+
+        # Check that the file meets the minimum required song length
+        if librosa.get_duration(filename=path) < self.min_song_duration:
+            return False, f'The specified file must be of at least {self.min_song_duration} seconds in duration.'
 
         # 3. Convert audio file to .wav and save to /interim/wav directory (Does so
         # ...for ALL file types, even .wav for the purpose of uniformity)
@@ -103,6 +108,7 @@ class PrepareAudio:
 
     def reshape_array(self, mel_spectrogram):
         """Reshapes the mel spectrogram array to fit the specified spectrogram length.
+        Normalizes the values in the array.
         Takes in original mel spectrogram array.
         Returns new array.
         """
@@ -114,8 +120,9 @@ class PrepareAudio:
             # Spectrogram is too short, pad it with zeros
             pad_diff = self.spectrogram_length - len(mel_spectrogram[0])
             mel_spectrogram = np.pad(mel_spectrogram, ((0, 0), (0, pad_diff)))
+        # Normalize the array to values between 0 and 1
+        mel_spectrogram = mel_spectrogram / np.linalg.norm(mel_spectrogram)
         return mel_spectrogram.tolist()
-
 
     def check_file_exists(self, path):
         """Checks if the specified file exists.
