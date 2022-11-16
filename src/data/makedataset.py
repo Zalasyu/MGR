@@ -97,7 +97,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         """
         start_t = time.perf_counter()
         mel_generator = torchaudio.transforms.MelSpectrogram(
-            sample_rate=22050, n_fft=2048, win_length=2048, hop_length=512, n_mels=128)
+            sample_rate=44100, n_fft=2048, win_length=2048, hop_length=512, n_mels=64)
 
         signal, sr = torchaudio.load(os.path.join(data_path, genre, filename))
 
