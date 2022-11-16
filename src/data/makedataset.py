@@ -87,7 +87,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         self.training_data.append(data)
         print("Size of training data after: {}".format(len(self.training_data)))
 
-    def etl_one_audio_file(self, genre: str, file: str, data_path: str):
+    def etl_one_audio_file(self, genre: str, filename: str, data_path: str):
         """ Process one audio file. Calls the transform and load functions.
 
         Args:
@@ -100,7 +100,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
 
         # Transform
         # Create Mel Spectrogram
-        mel_img = mel_gen.start(os.path.join(data_path, genre, file))
+        mel_img = mel_gen.start(os.path.join(data_path, genre, filename))
 
         # Create one-hot vector:
         label = np.eye(len(self.genre_dict))[self.genre_dict[genre]]
@@ -109,7 +109,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         data = (mel_img, list(label))
 
         stop_t = time.perf_counter()
-        return file, stop_t - start_t, data
+        return filename, stop_t - start_t, data
 
     def _process_genre(self, genre: str, data_path: str):
         """ Process audio files in a genre directory
@@ -132,8 +132,8 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             # Here we create a list of tuples, where each tuple contains the arguments for one function call
             results = pool.starmap(
                 self.etl_one_audio_file,
-                [(genre, file, data_path)
-                 for file in audio_files])
+                [(genre, filename, data_path)
+                 for filename in audio_files])
 
             # Waits for all processes to finish before continuing,
             # even though some processes may be done before others
