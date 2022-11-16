@@ -76,6 +76,17 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
     Advanced version uses multiprocessing to speed up ETL process
     """
 
+    def _append_data(self, data):
+        """
+        Appends data to training data list
+
+        Parameters
+                data: tuple of (img, label)
+        """
+        print("Size of training data before: {}".format(len(self.training_data)))
+        self.training_data.append(data)
+        print("Size of training data after: {}".format(len(self.training_data)))
+
     def etl_one_audio_file(self, genre: str, file: str, data_path: str):
         """ Process one audio file. Calls the transform and load functions.
 
@@ -128,12 +139,8 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             # even though some processes may be done before others
 
             for filename, duration, data in results:
-                print("Size of Training data before:", len(self.training_data))
+                self._append_data(data)
                 print(f"{filename} took {duration:.2f} seconds")
-                # Save data to training_data
-                print("Size of data:", len(data))
-                self.training_data.append(data)
-                print("Size of Training data after:", len(self.training_data))
 
     def make_training_data(self, data_path: str, output_path: str):
         """
