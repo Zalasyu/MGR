@@ -159,7 +159,8 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         self.create_genre_dictionary(data_path)
 
         # Get all genre directories
-        genres = os.listdir(data_path)
+        genres = ["blues", "classical", "country", "disco",
+                  "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
 
         print("Starting ETL process...")
         # Process each genre directory
