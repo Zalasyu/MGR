@@ -3,9 +3,8 @@ import numpy as np
 from src.data.PrepareInput import PrepareAudio
 from multiprocessing import Pool
 import multiprocessing as mpr
-from tqdm import tqdm
-import tracemalloc
 import time
+import torchaudio
 
 
 class MusicTrainingData:
@@ -97,11 +96,14 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             data_path (str): Path to genre directory
         """
         start_t = time.perf_counter()
-        mel_gen = PrepareAudio()
+        mel_generator = torchaudio.transforms.MelSpectrogram(
+            sample_rate=22050, n_fft=2048, win_length=2048, hop_length=512, n_mels=128)
+
+        signal = torchaudio.load(os.path.join(data_path, genre, filename))
 
         # Transform
         # Create Mel Spectrogram
-        mel_img = mel_gen.start(os.path.join(data_path, genre, filename))
+        mel_img = mel_generator(signal)
 
         # Create one-hot vector:
         label = np.eye(len(self.genre_dict))[self.genre_dict[genre]]
@@ -163,8 +165,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         self.create_genre_dictionary(data_path)
 
         # Get all genre directories
-        genres = ["classical", "country", "disco",
-                  "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
+        genres = os.listdir(data_path)
 
         print("Starting ETL process...")
         # Process each genre directory
