@@ -2,7 +2,7 @@ import os
 import numpy as np
 from src.data.PrepareInput import PrepareAudio
 from multiprocessing import Pool
-import multiprocessing
+import multiprocessing as mpr
 from tqdm import tqdm
 import tracemalloc
 import time
@@ -130,7 +130,8 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # The number of processes is the number of CPU cores
         # This is a CPU-Bound task
         print("Starting ETL process for genre: {}".format(genre))
-        core_count = multiprocessing.Semaphore(multiprocessing.cpu_count() - 1)
+        core_count = mpr.Semaphore(mpr.cpu_count())
+        core_count = core_count._value - 1
         print("Number of cores: {}".format(core_count))
         with Pool(processes=core_count) as pool:
             # pool.starmap() will call the function with multiple arguments
