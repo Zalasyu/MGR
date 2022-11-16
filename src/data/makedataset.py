@@ -107,6 +107,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
 
         # Create a tuple of the data
         data = (mel_img, list(label))
+        print("Created data tuple: {}".format(data))
 
         stop_t = time.perf_counter()
         return filename, stop_t - start_t, data
