@@ -3,6 +3,7 @@ import numpy as np
 from src.data.PrepareInput import PrepareAudio
 from multiprocessing import Pool
 from tqdm import tqdm
+import tracemalloc
 import time
 
 
@@ -75,14 +76,13 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
     Advanced version uses multiprocessing to speed up ETL process
     """
 
-    def etl_one_audio_file(self, genre: str, file: str, data_path: str, output_path: str):
+    def etl_one_audio_file(self, genre: str, file: str, data_path: str):
         """ Process one audio file. Calls the transform and load functions.
 
         Args:
             genre (str): Name of genre directory
             file (str): Name of audio file
             data_path (str): Path to genre directory
-            output_path (str): Path to output directory
         """
         start_t = time.perf_counter()
         mel_gen = PrepareAudio()
@@ -91,20 +91,22 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # Create Mel Spectrogram
         mel_img = mel_gen.start(os.path.join(data_path, genre, file))
 
-        # Create one-hot vector
+        # Create one-hot vector:
         label = np.eye(len(self.genre_dict))[self.genre_dict[genre]]
-        self.training_data.append([mel_img, list(label)])
-        stop_t = time.perf_counter()
-        return file, stop_t - start_t
 
-    def _process_genre(self, genre: str, data_path: str, output_path: str):
+        # Create a tuple of the data
+        data = (mel_img, list(label))
+
+        stop_t = time.perf_counter()
+        return file, stop_t - start_t, data
+
+    def _process_genre(self, genre: str, data_path: str):
         """ Process audio files in a genre directory
         This is a CPU-Bound task, so we use multiprocessing to speed up the process
 
         Args:
             genre (str): Name of genre directory
             data_path (str): Path to genre directory
-            output_path (str): Path to output directory
         """
 
         audio_files = os.listdir(os.path.join(data_path, genre))
@@ -119,19 +121,24 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             # Here we create a list of tuples, where each tuple contains the arguments for one function call
             results = pool.starmap(
                 self.etl_one_audio_file,
-                [(genre, file, data_path, output_path)
+                [(genre, file, data_path)
                  for file in audio_files])
 
             # Waits for all processes to finish before continuing,
             # even though some processes may be done before others
 
-            for filename, duration in results:
+            for filename, duration, data in results:
+                print("Size of Training data before:", len(self.training_data))
                 print(f"{filename} took {duration:.2f} seconds")
+                # Save data to training_data
+                print("Size of data:", len(data))
+                self.training_data.append(data)
+                print("Size of Training data after:", len(self.training_data))
 
     def make_training_data(self, data_path: str, output_path: str):
         """
-        Creates numpy array of mel spectrograph and genre label 
-        using the genre dictionary to create a one-hot vector. 
+        Creates numpy array of mel spectrograph and genre label
+        using the genre dictionary to create a one-hot vector.
 
         Args:
             data_path (str)): _description_
@@ -146,7 +153,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         print("Starting ETL process...")
         # Process each genre directory
         for genre in genres:
-            self._process_genre(genre, data_path, output_path)
+            self._process_genre(genre, data_path)
 
         # Load data to output directory
         self.save_training_data(output_path)
@@ -158,6 +165,31 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             output_path (str): Path to output directory
         """
         print("Saving training data...")
+        print("Size of Training data:", len(self.training_data))
         # Shuffle and save dataset to designated output path
         np.random.shuffle(self.training_data)
         np.save(os.path.join(output_path, 'training_data.npy'), self.training_data)
+
+
+def main():
+
+    data_path = 'data'
+    output_path = 'output'
+
+    # Create training data object
+    music_training_data = MusicTrainingDataAdvanced()
+
+    # Create training data
+    music_training_data.make_training_data(
+        data_path='../../data/raw',
+        output_path='../../data/processed')
+
+    # Get genre dictionary
+    genre_dict = music_training_data.get_genre_dictionary()
+
+    # Print genre dictionary
+    print(genre_dict)
+
+
+if __name__ == "__main__":
+    main()
