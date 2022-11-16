@@ -17,11 +17,11 @@ z2.py
 .idea/
 
 # Training data
-data/external/*
-data/interim/wav/*
-data/interim/png/*
+data/external/
+data/interim/wav/
+data/interim/png/
 data/processed/*.npy
-data/raw/*
+data/raw/
 
 # Numpy arrays in data folder
 data/*.npy
