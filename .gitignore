@@ -18,8 +18,8 @@ z2.py
 
 # Training data
 data/external/
-data/interim/*.wav
-data/interim/*.png
+data/interim/wav/
+data/interim/png/
 data/processed/*.npy
 data/raw/*
 
