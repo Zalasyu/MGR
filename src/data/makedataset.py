@@ -107,10 +107,12 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
 
         # Create a tuple of the data
         data = (mel_img, list(label))
-        print("Finished ETL for file: {}".format(filename))
 
         stop_t = time.perf_counter()
-        return filename, stop_t - start_t, data
+        print(
+            f"Finished processing {filename} in {stop_t - start_t:.2f} seconds")
+
+        return filename, data
 
     def _process_genre(self, genre: str, data_path: str):
         """ Process audio files in a genre directory
@@ -139,9 +141,10 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             # Waits for all processes to finish before continuing,
             # even though some processes may be done before others
 
-            for filename, duration, data in results:
+            for filename, data in results:
+                print(f"Saving {filename} to training data")
                 self._append_data(data)
-                print(f"{filename} took {duration:.2f} seconds")
+                print("Finished processing {}".format(filename))
 
     def make_training_data(self, data_path: str, output_path: str):
         """
