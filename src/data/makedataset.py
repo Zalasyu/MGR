@@ -126,7 +126,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
 
             # Cut the signal to the desired length
             # via slicing [start:stop:step] -> [start:stop] (In this case)
-            signal = signal[:, :self.NuM_SAMPLES]
+            signal = signal[:, :self.NUM_SAMPLES]
 
         return signal
 
