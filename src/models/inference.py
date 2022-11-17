@@ -41,5 +41,7 @@ if __name__ == "__main__":
     input_song.unsqueeze_(0)  # Add a batch dimension
 
     # Make prediction
-    predicted, expected = predict(cnn, input_song, target, class_mapping)
+    # predicted, expected = predict(cnn, input_song, target, class_mapping)
+    cnn.eval()
+
     print(f"Predicted: {predicted}, Expected: {expected}")
