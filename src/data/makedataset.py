@@ -255,6 +255,10 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # The number of processes is the number of CPU cores
         # This is a CPU-Bound task
         print("Starting ETL process for genre: {}".format(genre))
+
+        # Enable GPU
+        self._enable_gpu()
+
         core_count = mpr.cpu_count() - 1
 
         print("Number of cores: {}".format(core_count))
