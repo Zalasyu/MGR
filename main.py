@@ -8,7 +8,7 @@ if __name__ == "__main__":
     Music Genre Classifier program."""
     
     # 1. Construct dataset (skip if you already have a .npy dataset)
-    make_dataset = True   # Set to True to skip step
+    make_dataset = False   # Set to True to skip step
     if make_dataset:
         print("Initiating dataset construction.... ")
         t0 = time.perf_counter()
