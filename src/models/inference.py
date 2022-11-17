@@ -25,8 +25,8 @@ if __name__ == "__main__":
 
     cnn = ConvoNetwork()
     state_dict = torch.load("CNN.pth")
+    prINT("state_dict: ", state_dict)
     cnn = cnn.load_state_dict(state_dict)
-    cnn = cnn.to('cuda')
     print("Model loaded")
     print(cnn)
 
@@ -35,9 +35,11 @@ if __name__ == "__main__":
                          genres_dir=GENRES_DIR_CLOUD, device="cpu")
 
     # Get a song from the dataset for inference
-    input, target = gtzan[0][0], gtzan[0][1]
-    input.unsqueeze_(0)  # Add a batch dimension
+    input_song, target = gtzan[0][0], gtzan[0][1]
+    print("input_song: ", input_song)
+    print("target: ", target)
+    input_song.unsqueeze_(0)  # Add a batch dimension
 
     # Make prediction
-    predicted, expected = predict(cnn, input, target, class_mapping)
+    predicted, expected = predict(cnn, input_song, target, class_mapping)
     print(f"Predicted: {predicted}, Expected: {expected}")
