@@ -10,7 +10,7 @@ import random
 import time
 from src.data.PrepareInput import PrepareAudio
 import json
-import torch.optim.lr_scheduler as lr_scheduler
+#import torch.optim.lr_scheduler as lr_scheduler
 
 
 """
@@ -153,7 +153,7 @@ class Model:
         self.device = self.get_device()         # Initialize hardware to run model on (CPU or GPU)
         self.net = Net(self.classes, self.spec_width, self.spec_length).to(self.device)   # Initialize neural net instance
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)  # Initialize optimizer. Args(adjustable parameters, learning rate)
-        self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)  # Stepsize = how many epochs
+        #self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)  # Stepsize = how many epochs
         self.loss_function = nn.MSELoss()   # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
         self.model_name = "Model_MGR"     # Model name for writing data to .log file
 
@@ -278,8 +278,8 @@ class Model:
 
             # Print to visualize changes post epoch run
             print(f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)}, Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
-            print("learning rate", self.scheduler.get_last_lr()) 
-            self.scheduler.step()
+            #print("learning rate", self.scheduler.get_last_lr()) 
+            #self.scheduler.step()
 
     def train_mod(self, batch_x, batch_y):
         """Runs data through the neural network for the purpose of training.
