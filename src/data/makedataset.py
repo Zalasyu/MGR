@@ -318,8 +318,6 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         print("Analyzing training dataset...")
         print("Size of Training data:", len(self.training_data))
         print("Type of Training data:", type(self.training_data))
-        print("Shape of Training data:", self.training_data[0][0].shape)
-        print("Shape of Training data:", self.training_data[0][1].shape)
         print("First element of Training data:", self.training_data[0][0])
 
 
