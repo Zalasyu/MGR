@@ -5,6 +5,7 @@ from multiprocessing import Pool
 import multiprocessing as mpr
 import time
 import torchaudio
+import torch
 
 
 class MusicTrainingData:
@@ -76,6 +77,120 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
     Advanced version uses multiprocessing to speed up ETL process
     """
 
+    def __init__(self):
+        """
+        Constructor method to create blank training data list
+        and genre dictionary.
+        """
+        self.devide = ""
+        self.training_data = []
+        self.genre_dict = {}
+        self.NUM_SAMPLES = 44100 * 30  # 30 seconds
+        self.SAMPLE_RATE = 44100  # 44.1 kHz
+        self.N_FFT = 1024  # Number of samples per frame
+        self.HOP_LENGTH = 512  # Number of samples between successive frames
+        self.N_MELS = 64  # Number of mel bands
+
+    def _right_pad(self, signal):
+        """
+        Right pad signal if necessary
+
+        Args:
+            signal (Tensor): audio signal
+
+        Returns:
+            signal (Tensor): audio signal
+        """
+        # signal -> Tensor -> (num_channels, num_samples) -> (1, num_samples)
+        if signal.shape[1] < self.NUM_SAMPLES:
+
+            # Pad the signal to the desired length
+            # [1, 1, 1] -> [1, 1, 1, 0, 0, 0]
+            signal = torch.nn.functional.pad(
+                signal, (0, self.NUM_SAMPLES - signal.shape[1]), "constant", 0)
+
+        return signal
+
+    def _cut(self, signal):
+        """
+        Cut signal if necessary
+
+        Args:
+            signal (Tensor): audio signal
+
+        Returns:
+            signal (Tensor): audio signal
+        """
+        # signal -> Tensor -> (num_channels, num_samples) -> (1, num_samples)
+        if signal.shape[1] > self.NUM_SAMPLES:
+
+            # Cut the signal to the desired length
+            # via slicing [start:stop:step] -> [start:stop] (In this case)
+            signal = signal[:, :self.NuM_SAMPLES]
+
+        return signal
+
+    def _resample(self, signal, sr):
+        """
+        Resamples the signal to the specified sample rate
+
+        Args:
+            signal (Tensor): audio signal
+            sr (int): sample rate
+
+        Returns:
+            signal (Tensor): audio signal
+        """
+        if sr != self.SAMPLE_RATE:
+            resampler = torchaudio.transforms.Resample(  # Resample to 44.1 kHz
+                orig_freq=sr, new_freq=self.SAMPLE_RATE)
+            signal = resampler(signal)
+        return signal
+
+    def _uniformize_to_mono(self, signal):
+        """
+        Uniformizes the signal to mono
+
+        Args:
+            signal (Tensor): audio signal
+
+        Returns:
+            signal (Tensor): audio signal
+        """
+        # If the signal is stereo, convert it to mono
+        if signal.shape[0] > 1:
+
+            # Mean the signal across the channels
+            signal = torch.mean(signal, dim=0, keepdim=True)
+        return signal
+
+    def _generate_mel_spectrogram(self, signal, sr):
+        """
+        Creates a mel spectrogram from an audio signal
+
+        Parameters
+                signal: audio signal
+                sr: sample rate
+
+        Returns
+                mel_img: mel spectrogram
+        """
+        mel_generator = torchaudio.transforms.MelSpectrogram(
+            sample_rate=self.SAMPLE_RATE, n_fft=self.N_FFT, hop_length=self.HOP_LENGTH, n_mels=self.N_MELS)
+
+        # MelSpectrogram is a class that can be called like a function.
+        mel_img = mel_generator(signal)
+        return mel_img
+
+    def _enable_gpu(self):
+        """
+        Enables GPU if available
+        """
+        if torch.cuda.is_available():
+            self.device = torch.device('cuda')
+        else:
+            self.device = torch.device('cpu')
+
     def _append_data(self, data):
         """
         Appends data to training data list
@@ -96,14 +211,22 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
             data_path (str): Path to genre directory
         """
         start_t = time.perf_counter()
-        mel_generator = torchaudio.transforms.MelSpectrogram(
-            sample_rate=44100, n_fft=2048, win_length=2048, hop_length=512, n_mels=64)
 
+        # Extract
         signal, sr = torchaudio.load(os.path.join(data_path, genre, filename))
+
+        # GPU Enabled: Move signal to GPU
+        signal = signal.to(self.device)
+
+        # Preprocess audio data
+        signal = self._resample(signal, sr)
+        signal = self._uniformize_to_mono(signal)
+        signal = self._right_pad(signal)
+        signal = self._cut(signal)
 
         # Transform
         # Create Mel Spectrogram
-        mel_img = mel_generator(signal)
+        mel_img = self._generate_mel_spectrogram(signal, sr)
 
         # Create one-hot vector:
         label = np.eye(len(self.genre_dict))[self.genre_dict[genre]]
