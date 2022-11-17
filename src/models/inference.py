@@ -1,4 +1,5 @@
 import train
+from dataset_maker import GtzanDataset
 from cnn import ConvoNetwork
 import torch
 import torchaudio
@@ -25,10 +26,13 @@ if __name__ == "__main__":
     cnn = ConvoNetwork()
     state_dict = torch.load("CNN.pth")
     cnn = cnn.load_state_dict(state_dict)
+    cnn - cnn.to('cuda')
+    print("Model loaded")
+    print(cnn)
 
     # LOAD gtzan dataset
-    gtzan = train.GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                               genres_dir=GENRES_DIR_CLOUD, device="cpu")
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
+                         genres_dir=GENRES_DIR_CLOUD, device="cpu")
 
     # Get a song from the dataset for inference
     input, target = gtzan[0][0], gtzan[0][1]
