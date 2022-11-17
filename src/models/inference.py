@@ -35,7 +35,7 @@ if __name__ == "__main__":
                          genres_dir=GENRES_DIR_CLOUD, device="cpu")
 
     # Get a song from the dataset for inference
-    input_song, target = gtzan[0][0], gtzan[0][1]
+    input_song, target = gtzan[54][0], gtzan[54][1]
     print("input_song: ", input_song)
     print("target: ", target)
     input_song.unsqueeze_(0)  # Add a batch dimension
