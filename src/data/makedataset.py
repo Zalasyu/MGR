@@ -82,7 +82,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         Constructor method to create blank training data list
         and genre dictionary.
         """
-        self.devide = "cuda" if torch.cuda.is_available() else "cpu"
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.training_data = []
         self.genre_dict = {}
         self.NUM_SAMPLES = 44100 * 30  # 30 seconds
