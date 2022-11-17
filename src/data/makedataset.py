@@ -2,6 +2,7 @@ import os
 import numpy as np
 from src.data.PrepareInput import PrepareAudio
 import json
+from tqdm import tqdm
 
 
 class MusicTrainingData:
@@ -71,3 +72,8 @@ class MusicTrainingData:
         file_path = os.path.join(output_path, 'genre_dict.txt')
         with open(file_path, 'w') as dict_file:
             dict_file.write(json.dumps(self.genre_dict))
+
+
+if __name__ =="__main__":
+    x = MusicTrainingData()
+    x.make_training_data('data/raw', 'data/processed')

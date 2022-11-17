@@ -10,6 +10,8 @@ import random
 import time
 from src.data.PrepareInput import PrepareAudio
 import json
+import torch.optim.lr_scheduler as lr_scheduler
+
 
 """
 ----Instructions----
@@ -51,7 +53,6 @@ class Net(nn.Module):
         self.classes = classes    # Number of music genres
         self.spec_width = spec_width
         self.spec_length = spec_length
-
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
         # Initialize Convolutional neural network
@@ -152,8 +153,9 @@ class Model:
         self.device = self.get_device()         # Initialize hardware to run model on (CPU or GPU)
         self.net = Net(self.classes, self.spec_width, self.spec_length).to(self.device)   # Initialize neural net instance
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)  # Initialize optimizer. Args(adjustable parameters, learning rate)
+        self.scheduler = lr_scheduler.StepLR(self.optimizer, step_size=5, gamma=0.1)  # Stepsize = how many epochs
         self.loss_function = nn.MSELoss()   # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
-        self.model_name = "Model_MGR_1"     # Model name for writing data to .log file
+        self.model_name = "Model_MGR"     # Model name for writing data to .log file
 
     def train_model(self):
         """Main driver function which allows for training and testing of a dataset.
@@ -187,7 +189,6 @@ class Model:
 
         # 6 v2. Train and Test [Original]    *NONFUNCTIONAL This throws errors*
         self.train_and_test_v2(train_x, train_y, test_x, test_y)
-
 
 
     # Dataset management/manipulation methods
@@ -276,7 +277,9 @@ class Model:
                 total += batch_total
 
             # Print to visualize changes post epoch run
-            print(f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)},Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
+            print(f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)}, Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
+            print("learning rate", self.scheduler.get_last_lr()) 
+            self.scheduler.step()
 
     def train_mod(self, batch_x, batch_y):
         """Runs data through the neural network for the purpose of training.
@@ -322,7 +325,28 @@ class Model:
         return (correct, total, loss)     # Return accuracy of determination(s)
 
 
-    # ...
+    # Single song prediction methods
+    def predict_song(self, song_path):
+        """Uses the model to predict the genre of a song.
+        song_path: path to a song clip
+        returns
+        """
+
+        # Convert input into spectrogram
+        pa = PrepareAudio()
+        spectrogram = pa.start(song_path)
+        # Check that the spectrogram transformation was successful
+        if spectrogram[0] is False:
+            # Return the error message from the failed spectrogram transformation
+            return spectrogram[1]
+
+        # Convert the spectrogram to a data tensor
+        data_tensor = self.img_arr_to_tensor(spectrogram)
+        results = self.net(data_tensor).tolist()            # Get results from the neural network
+        results = results[0]                                # First result set in the results
+        self.print_prediction_results(results)
+        return results
+
     def img_arr_to_tensor(self, arr):
         """Converts an image (mel-spectrogram) to a tensor to be given to the model.
         args: arr = image array
@@ -330,24 +354,6 @@ class Model:
         data_tensor = torch.Tensor(arr)
         data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length)  # Reshape tensor
         return data_tensor
-
-    def predict_song(self, song_path):
-        """Uses the model to predict the genre of a song.
-        song_path: path to a song clip
-        returns
-        """
-        pa = PrepareAudio()
-        spectrogram = pa.start(song_path)
-        # Check that the spectrogram transformation was successful
-        if spectrogram[0] is False:
-            # Return the error message from the failed spectrogram transformation
-            return spectrogram[1]
-        # Convert the spectrogram to a data tensor
-        data_tensor = self.img_arr_to_tensor(spectrogram)
-        results = self.net(data_tensor).tolist()            # Get results from the neural network
-        results = results[0]                                # First result set in the results
-        self.print_prediction_results(results)
-        return results
 
     def genre_file_to_dict(self, dict_path):
         """Reads in the path to a genre dictionary and converts it into a python dictionary.

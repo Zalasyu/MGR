@@ -9,6 +9,7 @@ mgr_venv
 # For testing
 z.py
 z2.py
+other/
 
 # C extensions
 *.so

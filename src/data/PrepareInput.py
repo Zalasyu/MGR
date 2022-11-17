@@ -102,7 +102,8 @@ class PrepareAudio:
         # 7. Save image to directory (This img will be the
         # ...output of this program and input of ML model)
         self.generate_melspec_png(mel_spectrogram[0])
-        # Reshape the image array to match size of spectrogram_length
+
+        # 8. Reshape the image array to match size of spectrogram_length
         spectrogram_aray = self.reshape_array(mel_spectrogram[0])
         return spectrogram_aray
 
@@ -260,5 +261,6 @@ if __name__ == "__main__":
     # for the 'file' variable and the class will take care of the rest!
  
     audio_prepper = PrepareAudio()
-    file = 'tests/test_data/validfile_2.wav'
-    audio_prepper.start(file)
+    file = 'tests/test_data/validfile_5.au'
+    x = audio_prepper.start(file)
+    print(x)

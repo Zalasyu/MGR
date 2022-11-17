@@ -1,5 +1,6 @@
 from src.data.makedataset import MusicTrainingData
 from src.models.train_model import Model
+import torch
 import time   # Used for timimg
 
 if __name__ == "__main__":
@@ -18,20 +19,25 @@ if __name__ == "__main__":
         t1 = time.perf_counter()
         print(f"Dataset construction completed in {round(t1-t0, 2)} seconds.")  # Used for timing
 
-
-    # 2. Specify parameters (Tweak following value appropriately)
+    quit()
+    # 2. Initialize parameters (Tweak following value appropriately)
     classes = 10              # Number of genres in dataset
-    batch_size = 5            # Slice of data that will be passed into model at a time
-    epochs = 10               # Specifies number of runs through dataset
+    batch_size = 3            # Slice of data that will be passed into model at a time
+    epochs = 100               # Specifies number of runs through dataset
     learning_rate = 0.0001    # Rate of optimization (How fast it learns)
     validation_percent = 0.1  # Percent of sliced dataset that will be used for validating/testing
     data_path = "data/processed/training_data.npy"   # Path to dataset
     dict_path = "data/processed/genre_dict.txt"      # Path to genre dictionary
-
-    # 3. Call model
+    model_path = 'src/models/mgr_model.pth'
     model = Model(batch_size, epochs, learning_rate, validation_percent, data_path, dict_path)
-    print("Initiating model training.... ")
-    t0 = time.perf_counter()  # Used for timing
-    model.train_model()
-    t1 = time.perf_counter()
-    print(f"Model training completed in {round(t1-t0, 2)} seconds.")   # Used for timing
+
+    # 3. Train model
+    train_model = True
+    if train_model:
+        # Train model
+        print("Initiating model training.... ")
+        t0 = time.perf_counter()  # Used for timing
+        model.train_model()
+        t1 = time.perf_counter()
+        print(f"Model training completed in {round(t1-t0, 2)} seconds.")   # Used for timing
+
