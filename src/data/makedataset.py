@@ -310,6 +310,17 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # Shuffle and save dataset to designated output path
         np.random.shuffle(self.training_data)
         np.save(os.path.join(output_path, 'training_data.npy'), self.training_data)
+        self.analyze_training_dataset()
+
+    def analyze_training_dataset(self):
+        """ Analyze training dataset
+        """
+        print("Analyzing training dataset...")
+        print("Size of Training data:", len(self.training_data))
+        print("Type of Training data:", type(self.training_data))
+        print("Shape of Training data:", self.training_data[0][0].shape)
+        print("Shape of Training data:", self.training_data[0][1].shape)
+        print("First element of Training data:", self.training_data[0][0])
 
 
 def main():
