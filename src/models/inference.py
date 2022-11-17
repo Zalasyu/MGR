@@ -40,8 +40,6 @@ if __name__ == "__main__":
     print("target: ", target)
     input_song.unsqueeze_(0)  # Add a batch dimension
 
-    print("The state of the model is: " .format(cnn.training()))
-
     # Make prediction
     predicted, expected = predict(cnn, input_song, target, class_mapping)
 
