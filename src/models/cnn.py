@@ -71,8 +71,9 @@ class ConvoNetwork(nn.Module):
         # Flatten the output of the convolutional layers
         self.flatten = nn.Flatten()
 
-        # Fully connected block 1: 512 nodes
-        self.linear = nn.Linear(128 * 5 * 4, 10)
+        # Linear layer 1: 512 nodes
+        # 128 = Output channels from the last convolutional layer
+        self.linear = nn.Linear(128 * 5 * 163, 10)
 
         # Softmax activation function
         self.softmax = nn.Softmax(dim=1)
@@ -87,7 +88,10 @@ class ConvoNetwork(nn.Module):
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv4(x)
+
+        # The output of the convolutional layers is flattened
         x = self.flatten(x)
+        print(x.shape)
         logits = self.linear(x)
         predictions = self.softmax(logits)
         return predictions

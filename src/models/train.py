@@ -24,6 +24,8 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
     for inputs, targets in data_loader:
         # inputs, targets = inputs.to(device), targets.to(device)
+        print(inputs)
+        print(targets)
 
         # 1. Calculate loss
         predictions = model(inputs)
