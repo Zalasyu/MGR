@@ -23,8 +23,8 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
     """
 
     for inputs, targets in data_loader:
-        # inputs, targets = inputs.to(device), targets.to(device)
-        print(inputs)
+        inputs, targets = inputs.to(device), targets.to(device)
+        # print(inputs)
         print(targets)
 
         # 1. Calculate loss
@@ -54,8 +54,8 @@ if __name__ == "__main__":
     ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
     GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
 
-    ANNOTATIONS_FILE_CLOUD = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
-    GENRES_DIR_CLOUD = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+    ANNOTATIONS_FILE_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/features_30_sec.csv"
+    GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
@@ -64,8 +64,8 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE,
-                         genres_dir=GENRES_DIR, device=device)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
+                         genres_dir=GENRES_DIR_CLOUD, device=device)
     print("Data loaded")
     print(gtzan)
 
