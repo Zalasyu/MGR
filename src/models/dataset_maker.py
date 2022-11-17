@@ -88,9 +88,7 @@ class GtzanDataset(Dataset):
             _type_: _description_
         """
         audio_file_path = self._get_audio_file_path(idx)
-        print("Loading audio file: {}".format(audio_file_path))
         label = self._get_audio_label(idx)
-        print("Loading label: {}".format(self._get_audio_label(idx)))
         signal, sr = torchaudio.load(audio_file_path)
 
         # Load signal to device: CPU or GPU

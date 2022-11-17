@@ -24,8 +24,6 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
     for inputs, targets in data_loader:
         inputs, targets = inputs.to(device), targets.to(device)
-        # print(inputs)
-        print(targets)
 
         # 1. Calculate loss
         predictions = model(inputs)
@@ -64,6 +62,10 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
+    print("NOTE: Genre dictionary is hardcoded in dataset_maker.py")
+    print("Converted genres string labels to integer labels")
+    print("Here is the genre dictionary: ")
+    print("{'blues': 0, 'classical': 1, 'country': 2, 'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6, 'pop': 7, 'reggae': 8, 'rock': 9}")
     gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
                          genres_dir=GENRES_DIR_CLOUD, device=device)
     print("Data loaded")
