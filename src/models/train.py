@@ -50,11 +50,12 @@ def train(model, data_loader, loss_fn, optimizer, device, epochs):
 
 
 if __name__ == "__main__":
-    genre_id = {"blues": 0, "classical": 1, "country": 2, "disco": 3,
-                "hiphop": 4, "jazz": 5, "metal": 6, "pop": 7, "reggae": 8, "rock": 9}
 
-    ANNOTATIONS_FILE = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
-    GENRES_DIR = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+    ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
+    GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+
+    ANNOTATIONS_FILE_CLOUD = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
+    GENRES_DIR_CLOUD = "/home/zalasyu/Documents/467-CS/Data/genres_original"
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
