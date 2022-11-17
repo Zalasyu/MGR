@@ -26,7 +26,7 @@ if __name__ == "__main__":
     cnn = ConvoNetwork()
     state_dict = torch.load("CNN.pth")
     cnn = cnn.load_state_dict(state_dict)
-    cnn - cnn.to('cuda')
+    cnn = cnn.to('cuda')
     print("Model loaded")
     print(cnn)
 
