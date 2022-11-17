@@ -29,6 +29,7 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
         # 1. Calculate loss
         predictions = model(inputs)
+        print("predictions: ", predictions)
         loss = loss_fn(predictions, targets)
 
         # 2. Backpropagation
@@ -49,6 +50,9 @@ def train(model, data_loader, loss_fn, optimizer, device, epochs):
 
 
 if __name__ == "__main__":
+    genre_id = {"blues": 0, "classical": 1, "country": 2, "disco": 3,
+                "hiphop": 4, "jazz": 5, "metal": 6, "pop": 7, "reggae": 8, "rock": 9}
+
     ANNOTATIONS_FILE = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
     GENRES_DIR = "/home/zalasyu/Documents/467-CS/Data/genres_original"
 

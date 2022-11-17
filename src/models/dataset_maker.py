@@ -30,6 +30,9 @@ class GtzanDataset(Dataset):
         self.genres_dir = genres_dir
         self.annotations = pd.read_csv(annotations_file)
 
+        self.genre_dict = {"blues": 0, "classical": 1, "country": 2, "disco": 3,
+                           "hiphop": 4, "jazz": 5, "metal": 6, "pop": 7, "reggae": 8, "rock": 9}
+
         self.NUM_SAMPLES = 44100 * 30  # 30 seconds
         self.SAMPLE_RATE = 44100  # 44.1 kHz
         self.N_FFT = 1024  # Number of samples per frame
@@ -64,6 +67,15 @@ class GtzanDataset(Dataset):
     def __len__(self):
         return len(self.annotations)
 
+    def _convert_str_label_to_one_hot(self, label: str):
+        """
+        Convert string label to one-hot vector
+
+        Args:
+            label (str): The genre of the audio file
+        """
+        return self.genre_dict[label]
+
     def __getitem__(self, idx):
         """
         a_list[1] -> a_list.__getitem__(1)
@@ -92,7 +104,8 @@ class GtzanDataset(Dataset):
         # Generate mel spectrogram but on GPU or CPU
         signal = self._generate_mel_spectrogram(signal, sr)
 
-        return signal, label
+        converted_label = self._convert_str_label_to_one_hot(label)
+        return signal, converted_label
 
     def _right_pad(self, signal):
         """
