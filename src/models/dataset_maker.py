@@ -1,6 +1,6 @@
+
 import os
 import numpy as np
-# from src.data.PrepareInput import PrepareAudio
 from multiprocessing import Pool
 import multiprocessing as mpr
 import time
@@ -10,66 +10,7 @@ from torch.utils.data import Dataset
 import pandas as pd
 
 
-class MusicTrainingData:
-    """
-    The MusicTrainingData class generates a training dataset
-    to be used on the neural network. This will output a NumPy
-    array file (.npy) that contains a mel spectrograph and a
-    label for the spectrograph as a one-hot vector to signal
-    the correct genre.
-    """
-
-    def __init__(self):
-        """
-        Constructor method to create blank training data list
-        and genre dictionary.
-        """
-        self.training_data = []
-        self.genre_dict = {}
-
-    def create_genre_dictionary(self, path):
-        """
-        Creates a dictionary using the names of the objects at a
-        specified path. The objects should be directories that
-        contain data for a single music genre (ex. Rap, Classical).
-        """
-        self.genre_dict = {}
-        genre_count = 0
-        for g in os.listdir(path):
-            self.genre_dict[g] = genre_count
-            genre_count += 1
-
-    def get_genre_dictionary(self):
-        """
-        Returns genre dictionary
-        """
-        return self.genre_dict
-
-    def make_training_data(self, data_path, output_path):
-        """
-        Creates numpy array of mel spectrograph and genre label using
-        the genre dictionary to create a one-hot vector. Processes
-        all files within genre-labeled directories at a specified path.
-        """
-        self.create_genre_dictionary(data_path)
-        genre_count = len(self.genre_dict)
-        mel_spectrogram = PrepareAudio()
-        # Iterate through all genres
-        for genre in self.genre_dict:
-            # For each file in a genre
-            for f in os.listdir(os.path.join(data_path, genre)):
-                # Use Librosa to create a spectrograph - Midhun's code
-                img = mel_spectrogram.start(os.path.join(data_path, genre, f))
-                # Add image and label to training data
-                label = np.eye(genre_count)[self.genre_dict[genre]]
-                self.training_data.append([img, list(label)])
-
-        # Shuffle and save dataset to designated output path
-        np.random.shuffle(self.training_data)
-        np.save(os.path.join(output_path, 'training_data.npy'), self.training_data)
-
-
-class MusicTrainingDataAdvanced(MusicTrainingData):
+class GtzanDataset(Dataset):
     """
     Extract, Transform, Load (ETL) pipeline
     Extract: Extract audio files from genre directories
@@ -79,19 +20,79 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
     Advanced version uses multiprocessing to speed up ETL process
     """
 
-    def __init__(self):
+    def __init__(self, annotations_file, genres_dir, device):
         """
         Constructor method to create blank training data list
         and genre dictionary.
         """
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        self.training_data = []
-        self.genre_dict = {}
+        self.device = device
+
+        self.genres_dir = genres_dir
+        self.annotations = pd.read_csv(annotations_file)
+
         self.NUM_SAMPLES = 44100 * 30  # 30 seconds
         self.SAMPLE_RATE = 44100  # 44.1 kHz
         self.N_FFT = 1024  # Number of samples per frame
         self.HOP_LENGTH = 512  # Number of samples between successive frames
         self.N_MELS = 64  # Number of mel bands
+
+    def _get_audio_file_path(self, audio_id):
+        """Get the path to the audio file
+
+        Args:
+            audio_id (str): ID of the audio file
+
+        Returns:
+            str: Path to the audio file
+        """
+        genre = self.annotations.iloc[audio_id, 59]
+        path = os.path.join(self.genres_dir, genre,
+                            self.annotations.iloc[audio_id, 0])
+        return path
+
+    def _get_audio_label(self, audio_id):
+        """Get the label of the audio file
+
+        Args:
+            audio_id (str): ID of the audio file
+
+        Returns:
+            str: Label of the audio file
+        """
+        return self.annotations.iloc[audio_id, 59]
+
+    def __len__(self):
+        return len(self.annotations)
+
+    def __getitem__(self, idx):
+        """
+        a_list[1] -> a_list.__getitem__(1)
+        Loading the waveform and the corresponding label at the given index
+
+        Args:
+            idx (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        audio_file_path = self._get_audio_file_path(idx)
+        print("Loading audio file: {}".format(audio_file_path))
+        label = self._get_audio_label(idx)
+        print("Loading label: {}".format(self._get_audio_label(idx)))
+        signal, sr = torchaudio.load(audio_file_path)
+
+        # Load signal to device: CPU or GPU
+        signal = signal.to(self.device)
+
+        signal = self._resample(signal, sr)
+        signal = self._uniformize_to_mono(signal)
+        signal = self._cut(signal)
+        signal = self._right_pad(signal)
+
+        # Generate mel spectrogram but on GPU or CPU
+        signal = self._generate_mel_spectrogram(signal, sr)
+
+        return signal, label
 
     def _right_pad(self, signal):
         """
@@ -145,7 +146,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         """
         if sr != self.SAMPLE_RATE:
             resampler = torchaudio.transforms.Resample(  # Resample to 44.1 kHz
-                orig_freq=sr, new_freq=self.SAMPLE_RATE)
+                orig_freq=sr, new_freq=self.SAMPLE_RATE).to(self.device)
             signal = resampler(signal)
         return signal
 
@@ -178,20 +179,14 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
                 mel_img: mel spectrogram
         """
         mel_generator = torchaudio.transforms.MelSpectrogram(
-            sample_rate=self.SAMPLE_RATE, n_fft=self.N_FFT, hop_length=self.HOP_LENGTH, n_mels=self.N_MELS)
+            sample_rate=self.SAMPLE_RATE,
+            n_fft=self.N_FFT,
+            hop_length=self.HOP_LENGTH,
+            n_mels=self.N_MELS).to(self.device)
 
         # MelSpectrogram is a class that can be called like a function.
         mel_img = mel_generator(signal)
         return mel_img
-
-    def _enable_gpu(self):
-        """
-        Enables GPU if available
-        """
-        if torch.cuda.is_available():
-            self.device = torch.device('cuda')
-        else:
-            self.device = torch.device('cpu')
 
     def _append_data(self, data):
         """
@@ -254,9 +249,6 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # The number of processes is the number of CPU cores
         # This is a CPU-Bound task
         print("Starting ETL process for genre: {}".format(genre))
-
-        # Enable GPU
-        # self._enable_gpu()
 
         core_count = mpr.cpu_count() - 1
 
@@ -323,73 +315,16 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         print("First element of Training data:", self.training_data[0][0])
 
 
-class GtzanDataset(Dataset):
-    """Gtzan Dataset"""
-
-    def __init__(self, annotations_file, genres_dir, transform=None):
-        """Initialize the dataset
-
-        Args:
-            annotations_file (str): Path to the annotations file
-            genres_dir (str): Path to genres directory
-            transform (callable, optional): Optional transform to be applied
-                on a sample.
-        """
-        self.annotations = pd.read_csv(annotations_file)
-        self.genres_dir = genres_dir
-
-    def _get_audio_file_path(self, audio_id):
-        """Get the path to the audio file
-
-        Args:
-            audio_id (str): ID of the audio file
-
-        Returns:
-            str: Path to the audio file
-        """
-        genre = self.annotations.iloc[audio_id, 59]
-        path = os.path.join(self.genres_dir, genre,
-                            self.annotations.iloc[audio_id, 0])
-        return path
-
-    def _get_audio_label(self, audio_id):
-        """Get the label of the audio file
-
-        Args:
-            audio_id (str): ID of the audio file
-
-        Returns:
-            str: Label of the audio file
-        """
-        return self.annotations.iloc[audio_id, 59]
-
-    def __len__(self):
-        return len(self.annotations)
-
-    def __getitem__(self, idx):
-        """
-        a_list[1] -> a_list.__getitem__(1)
-        Loading the waveform and the corresponding label at the given index
-
-        Args:
-            idx (_type_): _description_
-
-        Returns:
-            _type_: _description_
-        """
-        audio_file_path = self._get_audio_file_path(idx)
-        print("Loading audio file: {}".format(audio_file_path))
-        label = self._get_audio_label(idx)
-        print("Loading label: {}".format(self._get_audio_label(idx)))
-        signal, sr = torchaudio.load(audio_file_path)
-        return signal, label
-
-
 if __name__ == "__main__":
     ANNOTATIONS_FILE = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
     GENRES_DIR = "/home/zalasyu/Documents/467-CS/Data/genres_original"
 
-    gtzan = GtzanDataset(ANNOTATIONS_FILE, GENRES_DIR)
+    if torch.cuda.is_available():
+        device = "cuda"
+    else:
+        device = "cpu"
+
+    gtzan = GtzanDataset(ANNOTATIONS_FILE, GENRES_DIR, device)
     print("Type of gtzan:", type(gtzan))
 
     print("Length of dataset:", len(gtzan))

@@ -248,17 +248,6 @@ class PrepareAudio:
         plt.savefig(f"{self.PNG_DATA_PATH}/{self.file_name}_ms.png")
 
 
-class MusicDataset:
-    """
-    Extract the mel spectrogram from the audio file and return it
-    """
-
-    sample_rate = 16000
-    n_fft = 1024
-    hop_length = 512
-    n_mels = 64
-
-
 if __name__ == "__main__":
     # Instructions: Specify a valid path to desired audio file
     # for the 'file' variable and the class will take care of the rest!
