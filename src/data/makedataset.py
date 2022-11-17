@@ -215,9 +215,6 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         # Extract
         signal, sr = torchaudio.load(os.path.join(data_path, genre, filename))
 
-        # GPU Enabled: Move signal to GPU
-        signal = signal.to(self.device)
-
         # Preprocess audio data
         signal = self._resample(signal, sr)
         signal = self._uniformize_to_mono(signal)
@@ -257,7 +254,7 @@ class MusicTrainingDataAdvanced(MusicTrainingData):
         print("Starting ETL process for genre: {}".format(genre))
 
         # Enable GPU
-        self._enable_gpu()
+        # self._enable_gpu()
 
         core_count = mpr.cpu_count() - 1
 
