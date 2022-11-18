@@ -6,6 +6,11 @@ from cnn import ConvoNetwork
 import matplotlib.pyplot as plt
 import librosa.display
 import time
+import torchvision
+from torch.utils.tensorboard import SummaryWriter
+
+# Create a tensorboard writer
+writer = SummaryWriter()
 
 BATCH_SIZE = 125
 EPOCHS = 10
@@ -50,32 +55,6 @@ def display_training_progress(loss, accuracy, batch_size, n_batches):
     )
 
 
-def calculate_accuracy(model, data_loader, device):
-    """
-    Calculate the accuracy of the model
-
-    Args:
-        model (nn.Module): The model to calculate accuracy for
-        data_loader (DataLoader): The data loader to use for calculating accuracy
-        device (_type_): _description_
-
-    Returns:
-        float: The accuracy of the model
-    """
-    correct = 0
-    total = 0
-
-    with torch.no_grad():
-        for inputs, targets in data_loader:
-            inputs, targets = inputs.to(device), targets.to(device)
-            outputs = model(inputs)
-            _, predicted = torch.max(outputs.data, 1)
-            total += targets.size(0)
-            correct += (predicted == targets).sum().item()
-
-    return 100 * correct / total
-
-
 def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
     """
     Train the model for one epoch
@@ -100,47 +79,36 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
         loss.backward()  # Calculate the gradients (backpropagation)
         optimizer.step()  # Update the weights
 
-    # 3. Calculate accuracy
-    accuracy = calculate_accuracy(model, data_loader, device)
-
-    print(f"Loss: {loss.item()}")
+        return loss
 
 
 def train(model, data_loader, loss_fn, optimizer, device, epochs):
     for i in range(epochs):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
-        train_one_epoch(model, data_loader, loss_fn, optimizer, device)
+        loss = train_one_epoch(model, data_loader, loss_fn, optimizer, device)
+        writer.add_scalar("Loss/train", loss, i)
         t1 = time.perf_counter()
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
         print(" ------------------- ")
+    writer.flush()
 
     print("Training finished")
 
 
-def plot_melspecgrams(data_loader: DataLoader):
+def get_batch(data_loader):
     """
-    Display a mel spectrogram
+    Extract one batch of data from the data loader
 
     Args:
-        data_loader (DataLoader): The data loader to use for displaying the spectrogram
+        data_loader (DataLoader): The data loader to extract from
     """
-    fig, axs = plt.subplots()
-    axs.set_title("Mel Spectrogram")
-    axs.set_ylabel("Frequency")
-    axs.set_xlabel("Time")
-    # Display the mel spectrogram
-    imgs, labels = next(iter(training_data_loader))
-    print("train_features.shape: ", imgs.shape)
-    img = imgs[0]
-    img = img.cpu().numpy()
-    print(img.shape)
-    # Drop the channel dimension
-    img = img[0, :, :]
-    print(img.shape)
-    img = axs.imshow(librosa.power_to_db(img), origin="lower", aspect="auto")
-    fig.colorbar(img, ax=axs, format="%+2.0f dB")
-    plt.show()
+    dataiter = iter(data_loader)
+    images, labels = dataiter.next()
+
+    # Create a grid of images
+    img_grid = torchvision.utils.make_grid(images)
+    return img_grid
 
 
 if __name__ == "__main__":
@@ -195,7 +163,9 @@ if __name__ == "__main__":
     print("-------------------")
 
     # Display a random sample from the dataset
-    plot_melspecgrams(training_data_loader)
+    img_grid = get_batch(training_data_loader)
+    writer.add_image("Random Mel Spectrograms", img_grid)
+    writer.flush()
 
     print("Creating model...")
 
