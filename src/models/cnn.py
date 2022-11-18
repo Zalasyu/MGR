@@ -79,16 +79,11 @@ class ConvoNetwork(nn.Module):
         x = self.conv2(x)
         x = self.conv3(x)
         x = self.conv4(x)
-        print("After convolutions: ", x.shape)
 
         # The output of the convolutional layers is flattened
         x = self.flatten(x)
-        print("Flattened: ", x.shape)
         logits = self.linear(x)
-        print("After linear: ", logits.shape)
         predictions = self.softmax(logits)
-        print("After softmax: ", predictions.shape)
-        print("Predictions: ", predictions)
         return predictions
 
 
