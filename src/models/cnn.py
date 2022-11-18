@@ -68,11 +68,14 @@ class ConvoNetwork(nn.Module):
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2)
         )
+
         # Flatten the output of the convolutional layers
         self.flatten = nn.Flatten()
 
         # Linear layer 1: 512 nodes
         # 128 = Output channels from the last convolutional layer
+        # 5 = Height of the spectrogram
+        # 163 = Width of the spectrogram
         self.linear = nn.Linear(128 * 5 * 163, 10)
 
         # Softmax activation function

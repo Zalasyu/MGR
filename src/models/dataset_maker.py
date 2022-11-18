@@ -1,9 +1,4 @@
-
 import os
-import numpy as np
-from multiprocessing import Pool
-import multiprocessing as mpr
-import time
 import torchaudio
 import torch
 from torch.utils.data import Dataset
@@ -189,6 +184,7 @@ class GtzanDataset(Dataset):
         Returns
                 mel_img: mel spectrogram
         """
+        # NOTE: The mel spectrogram is generated on the GPU if available
         mel_generator = torchaudio.transforms.MelSpectrogram(
             sample_rate=self.SAMPLE_RATE,
             n_fft=self.N_FFT,
