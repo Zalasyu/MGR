@@ -43,6 +43,8 @@ class GtzanDataset(Dataset):
         Returns:
             str: Path to the audio file
         """
+        # 59th column is the label colum in the csv file
+        # 0th column is the ID column in the csv file
         genre = self.annotations.iloc[audio_id, 59]
         path = os.path.join(self.genres_dir, genre,
                             self.annotations.iloc[audio_id, 0])
@@ -57,12 +59,13 @@ class GtzanDataset(Dataset):
         Returns:
             str: Label of the audio file
         """
+        # 59th column is the label colum in the csv file
         return self.annotations.iloc[audio_id, 59]
 
     def __len__(self):
         return len(self.annotations)
 
-    def _convert_str_label_to_one_hot(self, label: str):
+    def _convert_str_label_to_genre_id(self, label: str):
         """
         Convert string label to one-hot vector
 
@@ -97,7 +100,7 @@ class GtzanDataset(Dataset):
         # Generate mel spectrogram but on GPU or CPU
         signal = self._generate_mel_spectrogram(signal, sr)
 
-        converted_label = self._convert_str_label_to_one_hot(label)
+        converted_label = self._convert_str_label_to_genre_id(label)
         return signal, converted_label
 
     def _right_pad(self, signal):

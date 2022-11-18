@@ -1,10 +1,11 @@
 import torch
-import torchaudio
 from torch import nn
 from torch.utils.data import DataLoader
 from dataset_maker import GtzanDataset
 from cnn import ConvoNetwork
 import matplotlib.pyplot as plt
+import librosa.display
+import time
 
 BATCH_SIZE = 125
 EPOCHS = 10
@@ -87,7 +88,6 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
         # 1. Calculate loss
         predictions = model(inputs)
-        print("predictions: ", predictions)
         loss = loss_fn(predictions, targets)
 
         # 2. Backpropagation
@@ -103,11 +103,39 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
 def train(model, data_loader, loss_fn, optimizer, device, epochs):
     for i in range(epochs):
+        t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         train_one_epoch(model, data_loader, loss_fn, optimizer, device)
+        t1 = time.perf_counter()
+        print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
         print(" ------------------- ")
 
     print("Training finished")
+
+
+def plot_melspecgrams(data_loader: DataLoader):
+    """
+    Display a mel spectrogram
+
+    Args:
+        data_loader (DataLoader): The data loader to use for displaying the spectrogram
+    """
+    fig, axs = plt.subplots()
+    axs.set_title("Mel Spectrogram")
+    axs.set_ylabel("Frequency")
+    axs.set_xlabel("Time")
+    # Display the mel spectrogram
+    imgs, labels = next(iter(training_data_loader))
+    print("train_features.shape: ", imgs.shape)
+    img = imgs[0]
+    img = img.cpu().numpy()
+    print(img.shape)
+    # Drop the channel dimension
+    img = img[0, :, :]
+    print(img.shape)
+    img = axs.imshow(librosa.power_to_db(img), origin="lower", aspect="auto")
+    fig.colorbar(img, ax=axs, format="%+2.0f dB")
+    plt.show()
 
 
 if __name__ == "__main__":
@@ -129,17 +157,22 @@ if __name__ == "__main__":
     print("Converted genres string labels to integer labels")
     print("Here is the genre dictionary: ")
     print("{'blues': 0, 'classical': 1, 'country': 2, 'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6, 'pop': 7, 'reggae': 8, 'rock': 9}")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                         genres_dir=GENRES_DIR_CLOUD, device=device)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
+                         genres_dir=GENRES_DIR_LOCAL, device=device)
     print("Data loaded")
-    print(gtzan)
+    print("Size of dataset: ", len(gtzan))
+    print("-------------------")
 
+    print("-------------------")
+    print("Splitting data into train, validation, and test sets")
     # Split the data into training, testing, and validation sets
     train_count = int(len(gtzan) * TRAINING_PERCENTAGE)  # 80% of data
     val_count = int(len(gtzan) * VALIDATION_PERCENTAGE)  # 20% of the data
     test_count = len(gtzan) - train_count - val_count  # 10% of the data
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
         gtzan, [train_count, val_count, test_count])
+    print("Data split")
+    print("-------------------")
 
     print("Creating data loader...")
     # Create a dataloader for the training, testing, and validation sets
@@ -153,6 +186,10 @@ if __name__ == "__main__":
         test_dataset, batch_size=BATCH_SIZE)
 
     print("Data loader created")
+    print("-------------------")
+
+    # Display a random sample from the dataset
+    plot_melspecgrams(training_data_loader)
 
     print("Creating model...")
 
@@ -160,6 +197,7 @@ if __name__ == "__main__":
     cnn = ConvoNetwork().to(device)
     print("Model created")
     print(cnn)
+    print("-------------------")
 
     # Instantiate Loss function and Optimizer
     loss_fn = nn.CrossEntropyLoss()
