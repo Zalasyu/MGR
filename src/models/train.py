@@ -8,9 +8,20 @@ import librosa.display
 import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
+import numpy as np
+import datetime
+import sys
+
+# Get Time Stamp
+timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+
+# Get the system information
+sysinfo = torch.cuda.get_device_properties(
+    0) if torch.cuda.is_available() else "CPU"
+
 
 # Create a tensorboard writer
-writer = SummaryWriter()
+writer = SummaryWriter("runs/" + timestamp + "_" + sysinfo.name)
 
 BATCH_SIZE = 125
 EPOCHS = 10
@@ -94,6 +105,24 @@ def train(model, data_loader, loss_fn, optimizer, device, epochs):
     writer.flush()
 
     print("Training finished")
+
+
+def matplotlib_imshow(img, one_channel=False):
+    """
+    Show the image
+
+    Args:
+        img (Tensor): The image to show
+        one_channel (bool, optional): Whether the image is one channel. Defaults to False.
+    """
+    if one_channel:
+        img = img.mean(dim=0)
+    img = img / 2 + 0.5     # unnormalize
+    npimg = img.numpy()
+    if one_channel:
+        plt.imshow(npimg, cmap="Greys")
+    else:
+        plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
 
 def get_batch(data_loader):
