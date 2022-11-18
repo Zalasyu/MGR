@@ -5,11 +5,13 @@ from torch.utils.data import Dataset
 import pandas as pd
 
 
+# TODO: Decompose Transformations into a separate class
+# TODO: Implement data augmentation methods
 class GtzanDataset(Dataset):
     """
     Extract, Transform, Load (ETL) pipeline
     Extract: Extract audio files from genre directories
-    Transform: Create mel spectrograms and one-hot vectors
+    Transform: Create mel spectrograms.
     Load: Save data to output directory
 
     Advanced version uses multiprocessing to speed up ETL process

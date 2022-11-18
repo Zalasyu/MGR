@@ -14,6 +14,11 @@ VALIDATION_PERCENTAGE = 0.2
 TEST_PERCENTAGE = 0.1
 TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
+# TODO: Implement way to visualize training stage
+# TODO: Implement metrics
+# TODO: Implement dynamic model generation
+# TODO: Implement Cross Validation
+
 
 def initialize_weights(m):
     """
@@ -184,6 +189,7 @@ if __name__ == "__main__":
 
     test_data_loader = DataLoader(
         test_dataset, batch_size=BATCH_SIZE)
+    print("Train Data Type", type(training_data_loader))
 
     print("Data loader created")
     print("-------------------")
