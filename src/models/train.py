@@ -16,6 +16,9 @@ import datetime
 # TODO: Implement a way to dynamically create initial weights for model
 # TODO: Implement Cross Validation
 
+# Empty GPU cache
+torch.cuda.empty_cache()
+
 # Get Time Stamp
 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -209,13 +212,12 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                         genres_dir=GENRES_DIR_CLOUD, device=DEVICE)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
+                         genres_dir=GENRES_DIR_LOCAL, device=DEVICE)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
 
-    print("-------------------")
     print("Splitting data into train, validation, and test sets")
     # Split the data into training, testing, and validation sets
     train_count = int(len(gtzan) * TRAINING_PERCENTAGE)  # 80% of data
