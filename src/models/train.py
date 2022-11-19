@@ -189,6 +189,8 @@ def test(data_loader, loss_fn):
     MODEL.eval()
 
     running_loss = 0.0
+    correct = 0
+    total = 0
     for i, data in enumerate(data_loader):
         # Every data instance is a input and a label
         inputs, labels = data
