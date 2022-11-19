@@ -39,7 +39,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
 BATCH_SIZE = 25
-EPOCHS = 1  # Number of times to iterate over the dataset
+EPOCHS = 100  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
 LEARNING_RATE = 0.0001
