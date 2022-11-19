@@ -92,8 +92,8 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
     return last_loss
 
 
-def train(model, data_loader, loss_fn, optimizer, epochs):
-    for i in range(epochs):
+def train(model, data_loader, loss_fn, optimizer):
+    for i in range(EPOCHS):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         model.train(True)
