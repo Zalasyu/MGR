@@ -290,8 +290,8 @@ if __name__ == "__main__":
 
     print("Training model...")
     # Train the model
-    train_it_baby(cnn, training_data_loader,
-                  test_data_loader, loss_fn, optimizer)
+    train(cnn, training_data_loader, loss_fn, optimizer)
+    # train_it_baby(cnn, training_data_loader, test_data_loader, loss_fn, optimizer)
     print("Model trained")
 
     # Test the model
