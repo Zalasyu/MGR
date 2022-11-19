@@ -242,7 +242,6 @@ if __name__ == "__main__":
     GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
     # Free GPU cache
-    free_gpu_cache()
     print(torch.cuda.memory_summary())
 
     # Load the data
