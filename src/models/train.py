@@ -327,3 +327,11 @@ if __name__ == "__main__":
     test(test_data_loader, loss_fn)
     print("Model tested")
     print("-------------------")
+
+    # Save the model
+    model_class_name = MODEL.__class__.__name__
+    model_path = f"results/{model_class_name}_{timestamp}_{sysinfo.name}.pt"
+    torch.save(MODEL.state_dict(), model_path)
+    print("Saved best model")
+    print(f"Model saved to {model_path}")
+    print("-------------------")
