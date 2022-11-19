@@ -85,12 +85,13 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
         # Gather data for reporting
         running_loss += loss.item()
         print(f"Batch {i+1} loss: {loss.item()}")
+        print(f"i % {BATCH_SIZE} = {i % BATCH_SIZE}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
             running_loss = 0.0
 
-    return last_loss
+    return model, last_loss
 
 
 def train(model, data_loader, loss_fn, optimizer):
@@ -136,11 +137,13 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
     for epoch in range(EPOCHS):
         t_start = time.perf_counter()
         model.train(True)
-        avg_loss = train_one_epoch(model, train_dataloader, loss_fn, optimizer)
+        model, avg_loss = train_one_epoch(
+            model, train_dataloader, loss_fn, optimizer)
         model.train(False)
 
         # Validation loss
         running_vloss = 0.0
+        model.eval()
         for i, data in enumerate(test_dataloader):
             vinputs, vlabels = data
             vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
@@ -151,7 +154,8 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
             running_vloss += vloss.item()
 
         avg_vloss = running_vloss / (i + 1)
-        print(f"LOSS train {avg_loss} valid {avg_vloss}")
+        accuracy = 1 - avg_vloss
+        print(f"LOSS train {avg_loss} valid {avg_vloss} accuracy {accuracy}")
 
         # LOGGING
         # Log the running loss averaged per batch for both training and validation
@@ -293,8 +297,9 @@ if __name__ == "__main__":
 
     print("Training model...")
     # Train the model
-    train(cnn, training_data_loader, loss_fn, optimizer)
-    # train_it_baby(cnn, training_data_loader, test_data_loader, loss_fn, optimizer)
+    # train(cnn, training_data_loader, loss_fn, optimizer)
+    train_it_baby(cnn, training_data_loader,
+                  test_data_loader, loss_fn, optimizer)
     print("Model trained")
 
     # Test the model

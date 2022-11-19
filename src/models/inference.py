@@ -26,6 +26,9 @@ if __name__ == "__main__":
     ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
     GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
 
+    WEIGHTS_FILE_LOCAL = ""
+    WEIGHTS_FILE_CLOUD = ""
+
     cnn = ConvoNetwork()
     state_dict = torch.load("CNN.pth")
     print("state_dict: ", state_dict)
