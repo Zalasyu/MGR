@@ -72,6 +72,7 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
         inputs, labels = data
 
         # Move the data to the device
+        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
 
         # Zero the parameter gradients for every batch
         optimizer.zero_grad()
@@ -88,7 +89,7 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
 
         # Gather data for reporting
         running_loss += loss.item()
-        print(f"Batch {i+1} loss: {loss.item()}")
+        # print(f"Batch {i+1} loss: {loss.item()}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
@@ -99,25 +100,6 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
             running_loss = 0.0
 
     return last_loss
-
-
-def train(data_loader, loss_fn, optimizer):
-    for i in range(EPOCHS):
-        t0 = time.perf_counter()
-        print(f"Epoch {i+1}")
-        MODEL.train(True)
-        last_loss = train_one_epoch(data_loader, loss_fn, optimizer)
-
-        # We do not need gradients on to do reporting
-        MODEL.train(False)
-        tb_x = i * len(data_loader.dataset) + i + 1
-        writer.add_scalar("Loss/train", last_loss, tb_x)
-        t1 = time.perf_counter()
-        print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
-        print(" ------------------- ")
-    writer.flush()
-
-    print("Training finished")
 
 
 # TODO: Decompose Train and test loop
@@ -151,6 +133,7 @@ def train_it_baby(train_dataloader, test_dataloader, loss_fn, optimizer):
             vinputs, vlabels = vdata
 
             # Send data to device
+            vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
 
             # Make a predictions for this batch
             vloss = MODEL(vinputs)
@@ -176,6 +159,25 @@ def train_it_baby(train_dataloader, test_dataloader, loss_fn, optimizer):
             print(f"Model saved to {model_path}")
 
         epochs_num += 1
+
+
+def train(data_loader, loss_fn, optimizer):
+    for i in range(EPOCHS):
+        t0 = time.perf_counter()
+        print(f"Epoch {i+1}")
+        MODEL.train(True)
+        last_loss = train_one_epoch(data_loader, loss_fn, optimizer)
+
+        # We do not need gradients on to do reporting
+        MODEL.train(False)
+        tb_x = i * len(data_loader.dataset) + i + 1
+        writer.add_scalar("Loss/train", last_loss, tb_x)
+        t1 = time.perf_counter()
+        print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
+        print(" ------------------- ")
+    writer.flush()
+
+    print("Training finished")
 
 
 def get_batch_create_img_grid(data_loader):
@@ -263,13 +265,13 @@ if __name__ == "__main__":
     print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     test_data_loader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     print("Data loaders created")
     print("-------------------")
