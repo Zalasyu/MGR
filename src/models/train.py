@@ -53,16 +53,14 @@ print(MODEL)
 print("-------------------")
 
 
-def train_one_epoch(model, data_loader, loss_fn, optimizer):
+def train_one_epoch(data_loader, loss_fn, optimizer):
     """
     Train the model for one epoch
 
     Args:
-        model (nn.Module): The model to train (CNN)
         data_loader (DataLoader): The data loader to use for training
         loss_fn (_type_): _description_
         optimizer (_type_): _description_
-        device (_type_): _description_
     """
     running_loss = 0.0
     last_loss = 0.0
