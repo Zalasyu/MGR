@@ -11,6 +11,11 @@ from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import datetime
 
+# TODO: Implement way to visualize training stage
+# TODO: Implement metrics
+# TODO: Implement a way to dynamically create initial weights for model
+# TODO: Implement Cross Validation
+
 # Get Time Stamp
 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 
@@ -22,32 +27,18 @@ sysinfo = torch.cuda.get_device_properties(
 # Create a tensorboard writer
 writer = SummaryWriter("runs/" + timestamp + "_" + sysinfo.name)
 
-BATCH_SIZE = 5
-EPOCHS = 100
+# Device
+DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+
+BATCH_SIZE = 100
+EPOCHS = 10
 LEARNING_RATE = 0.0001
 VALIDATION_PERCENTAGE = 0.2
 TEST_PERCENTAGE = 0.1
 TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
-# TODO: Implement way to visualize training stage
-# TODO: Implement metrics
-# TODO: Implement dynamic model generation
-# TODO: Implement Cross Validation
 
-
-def initialize_weights(m):
-    """
-    Initialize the weights randomly for the model
-
-    Args:
-        m (nn.Module): The model to initialize
-    """
-    if isinstance(m, nn.Conv2d) or isinstance(m, nn.Linear):
-        nn.init.xavier_uniform_(m.weight)
-        nn.init.zeros_(m.bias)
-
-
-def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
+def train_one_epoch(model, data_loader, loss_fn, optimizer):
     """
     Train the model for one epoch
 
@@ -66,7 +57,10 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
         inputs, labels = data
 
         # Move the data to the device
-        inputs, labels = inputs.to(device), labels.to(device)
+        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
+
+        # Print(Batch size)
+        print(f"Batch size: {inputs[0].size()}")
 
         # Zero the parameter gradients for every batch
         optimizer.zero_grad()
@@ -83,7 +77,6 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
         # Gather data for reporting
         running_loss += loss.item()
-        print(f"Batch {i+1}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
@@ -92,13 +85,13 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
     return last_loss
 
 
-def train(model, data_loader, loss_fn, optimizer, device, epochs):
+def train(model, data_loader, loss_fn, optimizer, epochs):
     for i in range(epochs):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         model.train(True)
         last_loss = train_one_epoch(
-            model, data_loader, loss_fn, optimizer, device)
+            model, data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         model.train(False)
@@ -110,6 +103,58 @@ def train(model, data_loader, loss_fn, optimizer, device, epochs):
     writer.flush()
 
     print("Training finished")
+
+
+def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
+    """
+    Train and Report
+
+    Args:
+        model (_type_): _description_
+        train_dataloader (_type_): _description_
+        test_dataloader (_type_): _description_
+        optimizer (_type_): _description_
+        loss_fn (_type_): _description_
+        epochs (_type_): _description_
+    """
+    epochs_num = 0
+
+    # Validation loss
+    best_vloss = 1_000_000.
+
+    for epoch in range(EPOCHS):
+        t_start = time.perf_counter()
+        model.train(True)
+        avg_loss = train_one_epoch(model, train_dataloader, loss_fn, optimizer)
+
+        # Validation loss
+        running_vloss = 0.0
+        for i, data in enumerate(test_dataloader):
+            vinputs, vlabels = data
+            vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
+
+            # Make a predictions for this batch
+            vloss = model(vinputs)
+            vloss = loss_fn(vloss, vlabels)
+            running_vloss += vloss
+
+        avg_vloss = running_vloss / (i + 1)
+        print(f"LOSS train {avg_loss} valid {avg_vloss}")
+
+        # LOGGING
+        # Log the running loss averaged per batch for both training and validation
+        writer.add_scalars("Training vs Validation Loss",
+                           {"Training Loss": avg_loss, "Validation Loss": avg_vloss}, epochs_num + 1)
+        writer.flush()
+
+        # Track best performance, and save model
+
+        if avg_vloss < best_vloss:
+            best_vloss = avg_vloss
+            model_path = f"models/{timestamp}_{sysinfo.name}_{epochs_num}.pth"
+            torch.save(model.state_dict(), model_path)
+            print("Saved best model")
+            print(f"Model saved to {model_path}")
 
 
 def get_batch_create_img_grid(data_loader):
@@ -154,19 +199,10 @@ if __name__ == "__main__":
     ANNOTATIONS_FILE_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/features_30_sec.csv"
     GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
-    if torch.cuda.is_available():
-        device = torch.device("cuda")
-    else:
-        device = torch.device("cpu")
-
     # Load the data
     print("Loading data...")
-    print("NOTE: Genre dictionary is hardcoded in dataset_maker.py")
-    print("Converted genres string labels to integer labels")
-    print("Here is the genre dictionary: ")
-    print("{'blues': 0, 'classical': 1, 'country': 2, 'disco': 3, 'hiphop': 4, 'jazz': 5, 'metal': 6, 'pop': 7, 'reggae': 8, 'rock': 9}")
     gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
-                         genres_dir=GENRES_DIR_LOCAL, device=device)
+                         genres_dir=GENRES_DIR_LOCAL, device=DEVICE)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
@@ -182,48 +218,57 @@ if __name__ == "__main__":
     print("Data split")
     print("-------------------")
 
-    print("Creating data loader...")
+    print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
     test_data_loader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE)
-    print("Train Data Type", type(training_data_loader))
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False)
 
-    print("Data loader created")
+    print("Data loaders created")
     print("-------------------")
 
+    print("SANITY CHECK")
+    print("Reporting to Tensorboard Random Mel Spectrogram Images from Training Set")
     # Display a random sample from the dataset
     img_grid = get_batch_create_img_grid(training_data_loader)
     writer.add_image("Random Mel Spectrograms", img_grid)
     writer.flush()
+    print("-------------------")
 
     print("Creating model...")
-
     # Construct the model
-    cnn = VGG16().to(device)
+    cnn = VGG16().to(DEVICE)
     print("Model created")
     print(cnn)
     print("-------------------")
 
     # Instantiate Loss function and Optimizer
+    # CrossEntropyLoss is used for classification
     loss_fn = nn.CrossEntropyLoss()
+
+    # Adam is a popular optimizer for deep learning
     optimizer = torch.optim.Adam(cnn.parameters(), lr=LEARNING_RATE)
 
     # Visualize the model
     visualize_model(cnn, training_data_loader)
 
+    print("Training model...")
     # Train the model
-    train(cnn, training_data_loader, loss_fn, optimizer, device, EPOCHS)
+    train_it_baby(cnn, training_data_loader,
+                  test_data_loader, loss_fn, optimizer)
+    print("Model trained")
 
     # Test the model
 
     # Validate models
 
     # Save the model
-    # TODO: Save the model in results folder
-    torch.save(cnn.state_dict(), "CNN.pth")
+    # Name of Model based on system and time
+    # model_name = "CNN" + timestamp + "_" + sysinfo + ".pth"
+
+    # torch.save(cnn.state_dict(), "CNN.pth")

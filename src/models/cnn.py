@@ -1,8 +1,11 @@
 from torch import nn
 from torchsummary import summary
-
-VGG16_acrhitecture = [64, 64, 'M', 128, 128, 'M', 256, 256, 256,
-                      'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
+VGG_types = {
+    "VGG16": [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
+    "VGG19": [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
+    "VGG11": [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    "VGG13": [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M']
+}
 
 
 class ConvoNetwork(nn.Module):
@@ -107,7 +110,7 @@ class VGG16(nn.Module):
     def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584):
         super(VGG16, self).__init__()
         self.in_channels = in_channels
-        self.conv_layers = self.create_conv_layers(VGG16_acrhitecture)
+        self.conv_layers = self.create_conv_layers(VGG_types["VGG16"])
 
         self.height_out_after_conv = img_height // 2**5
         self.width_out_after_conv = img_width // 2**5
@@ -136,10 +139,12 @@ class VGG16(nn.Module):
         x = self.fcs(x)
         return x
 
-    def create_conv_layers(self, architecture=VGG16_acrhitecture):
+    def create_conv_layers(self, architecture):
         layers = []
         in_channels = self.in_channels
 
+        # Programmatically create the convolutional layers
+        # Use the architecture list to create the layers
         for x in architecture:
             if type(x) == int:
                 out_channels = x
