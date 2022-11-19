@@ -34,7 +34,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
-BATCH_SIZE = 50
+BATCH_SIZE = 25
 EPOCHS = 10  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
@@ -196,7 +196,8 @@ def get_batch_create_img_grid(data_loader):
 
     # Create a grid of images
     img_grid = torchvision.utils.make_grid(images)
-    return img_grid
+    writer.add_image("Random Mel Spectrograms", img_grid)
+    writer.flush()
 
 
 def visualize_model(data_loader):
@@ -279,9 +280,7 @@ if __name__ == "__main__":
     print("SANITY CHECK")
     print("Reporting to Tensorboard Random Mel Spectrogram Images from Training Set")
     # Display a random sample from the dataset
-    img_grid = get_batch_create_img_grid(training_data_loader)
-    writer.add_image("Random Mel Spectrograms", img_grid)
-    writer.flush()
+    get_batch_create_img_grid(training_data_loader)
     print("-------------------")
 
     # Instantiate Loss function and Optimizer
