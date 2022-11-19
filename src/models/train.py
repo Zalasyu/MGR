@@ -12,6 +12,7 @@ import numpy as np
 import datetime
 from GPUtil import showUtilization as gpu_usage
 from numba import cuda
+import gc
 
 # TODO: Implement way to visualize training stage
 # TODO: Implement metrics
@@ -205,6 +206,9 @@ def free_gpu_cache():
     """
     print("Initial GPU Usage")
     gpu_usage()
+
+    # Garbage collection
+    gc.collect()
     torch.cuda.empty_cache()
     cuda.select_device(0)
     cuda.close()
