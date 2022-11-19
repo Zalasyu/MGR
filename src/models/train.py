@@ -297,8 +297,7 @@ if __name__ == "__main__":
     # train(cnn, training_data_loader, loss_fn, optimizer)
     t_start = time.perf_counter()
 
-    train_it_baby(MODEL, training_data_loader,
-                  test_data_loader, loss_fn, optimizer)
+    train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
 
     t_end = time.perf_counter()
     print(f"Training took {t_end - t_start} seconds")
