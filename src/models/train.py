@@ -36,7 +36,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
-BATCH_SIZE = 32
+BATCH_SIZE = 50
 EPOCHS = 10  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
@@ -113,6 +113,8 @@ def train(model, data_loader, loss_fn, optimizer):
 
 
 # TODO: Decompose Train and test loop
+# TODO: URGENT cannot have  training and validation loop in one method since
+# it loads in two different models and uses all the gpu memory
 def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
     """
     Train and Report
