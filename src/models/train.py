@@ -161,7 +161,7 @@ def test(data_loader, loss_fn):
 
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        writer.add_scalar("Loss/test", avg_loss, i + 1)
+        writer.add_scalar("Loss/test", running_loss, i)
 
     avg_loss = running_loss / (i + 1)
     accuracy = 100.0*correct / total
