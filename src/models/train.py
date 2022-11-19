@@ -228,6 +228,7 @@ if __name__ == "__main__":
 
     # Free GPU cache
     free_gpu_cache()
+    print(torch.cuda.memory_summary())
 
     # Load the data
     print("Loading data...")
