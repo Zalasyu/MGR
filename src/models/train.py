@@ -35,7 +35,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
 BATCH_SIZE = 25
-EPOCHS = 10  # Number of times to iterate over the dataset
+EPOCHS = 100  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
 LEARNING_RATE = 0.0001
@@ -100,7 +100,6 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     return last_loss
 
 
-# TODO: Decompose Train and test loop
 def train_it_baby(train_dataloader, test_dataloader, loss_fn, optimizer):
     """
     Train and Report
@@ -206,9 +205,17 @@ def test(data_loader, loss_fn):
         # Gather data for reporting
         running_loss += loss.item()
 
-    avg_loss = running_loss / (i + 1)
-    print(f"Test Loss: {avg_loss}")
+        _, predicted = torch.max(outputs.data, 1)
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
 
+    avg_loss = running_loss / (i + 1)
+    accuracy = 100.0*correct / total
+
+    print(f"Test Loss: {avg_loss}")
+    print(f"Accuracy: {accuracy}")
+
+    # LOGGING
     writer.add_scalar("Loss/test", avg_loss, 1)
     writer.flush()
 
