@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from dataset_maker import GtzanDataset
-from cnn import ConvoNetwork
+from cnn import ConvoNetwork, VGG16
 import matplotlib.pyplot as plt
 import librosa.display
 import time
@@ -10,7 +10,6 @@ import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import datetime
-import sys
 
 # Get Time Stamp
 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -23,8 +22,8 @@ sysinfo = torch.cuda.get_device_properties(
 # Create a tensorboard writer
 writer = SummaryWriter("runs/" + timestamp + "_" + sysinfo.name)
 
-BATCH_SIZE = 125
-EPOCHS = 10
+BATCH_SIZE = 5
+EPOCHS = 100
 LEARNING_RATE = 0.0001
 VALIDATION_PERCENTAGE = 0.2
 TEST_PERCENTAGE = 0.1
@@ -48,24 +47,6 @@ def initialize_weights(m):
         nn.init.zeros_(m.bias)
 
 
-def display_training_progress(loss, accuracy, batch_size, n_batches):
-    """
-    Show the training progress
-
-    Args:
-        loss (float): The loss of the model
-        accuracy (float): The accuracy of the model
-        batch_size (int): The batch size
-        n_batches (int): The number of batches
-    """
-    print(
-        f"Loss: {loss.item():.4f} "
-        f"[{batch_size * (n_batches + 1)}/{n_batches * batch_size} "
-        f"({100. * (n_batches + 1) / n_batches:.0f}%)]\t"
-        f"Accuracy: {accuracy / batch_size:.3f}"
-    )
-
-
 def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
     """
     Train the model for one epoch
@@ -77,28 +58,52 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
         optimizer (_type_): _description_
         device (_type_): _description_
     """
+    running_loss = 0.0
+    last_loss = 0.0
 
-    for inputs, targets in data_loader:
-        inputs, targets = inputs.to(device), targets.to(device)
+    for i, data in enumerate(data_loader):
+        # Every data instance is a input and a label
+        inputs, labels = data
 
-        # 1. Calculate loss
-        predictions = model(inputs)
-        loss = loss_fn(predictions, targets)
+        # Move the data to the device
+        inputs, labels = inputs.to(device), labels.to(device)
 
-        # 2. Backpropagation
-        optimizer.zero_grad()  # At each batch we reset the gradients to zero
-        loss.backward()  # Calculate the gradients (backpropagation)
-        optimizer.step()  # Update the weights
+        # Zero the parameter gradients for every batch
+        optimizer.zero_grad()
 
-        return loss
+        # Make a predictions for this batch
+        outputs = model(inputs)
+
+        # Calculate the loss and backpropagate
+        loss = loss_fn(outputs, labels)
+        loss.backward()
+
+        # Update the weights (Learning)
+        optimizer.step()
+
+        # Gather data for reporting
+        running_loss += loss.item()
+        print(f"Batch {i+1}")
+        if i % BATCH_SIZE == BATCH_SIZE - 1:
+            last_loss = running_loss / BATCH_SIZE
+            print(f"Batch {i+1} loss: {last_loss}")
+            running_loss = 0.0
+
+    return last_loss
 
 
 def train(model, data_loader, loss_fn, optimizer, device, epochs):
     for i in range(epochs):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
-        loss = train_one_epoch(model, data_loader, loss_fn, optimizer, device)
-        writer.add_scalar("Loss/train", loss, i)
+        model.train(True)
+        last_loss = train_one_epoch(
+            model, data_loader, loss_fn, optimizer, device)
+
+        # We do not need gradients on to do reporting
+        model.train(False)
+        tb_x = i * len(data_loader.dataset) + i + 1
+        writer.add_scalar("Loss/train", last_loss, tb_x)
         t1 = time.perf_counter()
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
         print(" ------------------- ")
@@ -107,25 +112,7 @@ def train(model, data_loader, loss_fn, optimizer, device, epochs):
     print("Training finished")
 
 
-def matplotlib_imshow(img, one_channel=False):
-    """
-    Show the image
-
-    Args:
-        img (Tensor): The image to show
-        one_channel (bool, optional): Whether the image is one channel. Defaults to False.
-    """
-    if one_channel:
-        img = img.mean(dim=0)
-    img = img / 2 + 0.5     # unnormalize
-    npimg = img.numpy()
-    if one_channel:
-        plt.imshow(npimg, cmap="Greys")
-    else:
-        plt.imshow(np.transpose(npimg, (1, 2, 0)))
-
-
-def get_batch(data_loader):
+def get_batch_create_img_grid(data_loader):
     """
     Extract one batch of data from the data loader
 
@@ -135,9 +122,28 @@ def get_batch(data_loader):
     dataiter = iter(data_loader)
     images, labels = dataiter.next()
 
+    # Get image size with torchvision with first image
+    img_size = torchvision.transforms.functional.get_image_size(images[0])
+    print(f"Image size: {img_size}")
+
     # Create a grid of images
     img_grid = torchvision.utils.make_grid(images)
     return img_grid
+
+
+def visualize_model(model, data_loader):
+    """
+    Use Tensorboard to examine the data flow within the model.
+
+    Args:
+        model (nn.Module): The model to visualize
+        data_loader (DataLoader): The data loader to use for visualization
+    """
+    dataiter = iter(data_loader)
+    images, labels = dataiter.next()
+
+    writer.add_graph(model, images)
+    writer.flush()
 
 
 if __name__ == "__main__":
@@ -192,14 +198,14 @@ if __name__ == "__main__":
     print("-------------------")
 
     # Display a random sample from the dataset
-    img_grid = get_batch(training_data_loader)
+    img_grid = get_batch_create_img_grid(training_data_loader)
     writer.add_image("Random Mel Spectrograms", img_grid)
     writer.flush()
 
     print("Creating model...")
 
     # Construct the model
-    cnn = ConvoNetwork().to(device)
+    cnn = VGG16().to(device)
     print("Model created")
     print(cnn)
     print("-------------------")
@@ -207,6 +213,9 @@ if __name__ == "__main__":
     # Instantiate Loss function and Optimizer
     loss_fn = nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(cnn.parameters(), lr=LEARNING_RATE)
+
+    # Visualize the model
+    visualize_model(cnn, training_data_loader)
 
     # Train the model
     train(cnn, training_data_loader, loss_fn, optimizer, device, EPOCHS)

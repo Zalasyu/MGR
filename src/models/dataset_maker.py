@@ -30,7 +30,7 @@ class GtzanDataset(Dataset):
         self.genre_dict = {"blues": 0, "classical": 1, "country": 2, "disco": 3,
                            "hiphop": 4, "jazz": 5, "metal": 6, "pop": 7, "reggae": 8, "rock": 9}
 
-        self.NUM_SAMPLES = 44100 * 30  # 30 seconds
+        self.NUM_SAMPLES = 44100 * 30  # 30 seconds (1323000 Samples)
         self.SAMPLE_RATE = 44100  # 44.1 kHz
         self.N_FFT = 1024  # Number of samples per frame
         self.HOP_LENGTH = 512  # Number of samples between successive frames

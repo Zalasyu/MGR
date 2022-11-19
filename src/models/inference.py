@@ -23,6 +23,9 @@ if __name__ == "__main__":
     ANNOTATIONS_FILE_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/features_30_sec.csv"
     GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
+    ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
+    GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+
     cnn = ConvoNetwork()
     state_dict = torch.load("CNN.pth")
     print("state_dict: ", state_dict)
@@ -31,16 +34,11 @@ if __name__ == "__main__":
     print(cnn)
 
     # LOAD gtzan dataset
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                         genres_dir=GENRES_DIR_CLOUD, device="cpu")
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
+                         genres_dir=GENRES_DIR_LOCAL, device="cpu")
 
-    # Get a song from the dataset for inference
-    input_song, target = gtzan[54][0], gtzan[54][1]
-    print("input_song: ", input_song)
-    print("target: ", target)
-    input_song.unsqueeze_(0)  # Add a batch dimension
-
-    # Make prediction
-    predicted, expected = predict(cnn, input_song, target, class_mapping)
-
-    print(f"Predicted: {predicted}, Expected: {expected}")
+    # Make Predictions
+    for i in range(10):
+        input, target = gtzan[i]
+        predicted, expected = predict(cnn, input, target, class_mapping)
+        print("Predicted: ", predicted, "Expected: ", expected)
