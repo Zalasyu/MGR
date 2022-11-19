@@ -134,6 +134,7 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
         t_start = time.perf_counter()
         model.train(True)
         avg_loss = train_one_epoch(model, train_dataloader, loss_fn, optimizer)
+        model.train(False)
 
         # Validation loss
         running_vloss = 0.0
