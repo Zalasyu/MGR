@@ -54,6 +54,7 @@ gast==0.4.0
 google-auth==2.14.1
 google-auth-oauthlib==0.4.6
 google-pasta==0.2.0
+GPUtil==1.4.0
 grpcio==1.50.0
 h5py==3.7.0
 humanfriendly==10.0
@@ -149,6 +150,7 @@ threadpoolctl==3.1.0
 toml==0.10.2
 tomli==2.0.1
 torch==1.12.1
+torch-tb-profiler==0.4.0
 torchaudio==0.12.1
 torchsummary==1.5.1
 torchvision==0.13.1
