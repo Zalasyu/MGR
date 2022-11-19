@@ -94,7 +94,7 @@ class ConvoNetwork(nn.Module):
         return predictions
 
 
-class VGG16(nn.Module):
+class VGG(nn.Module):
     """
     VGG16 architecture
     It has 16 weight layers
@@ -108,7 +108,7 @@ class VGG16(nn.Module):
     """
 
     def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584):
-        super(VGG16, self).__init__()
+        super(VGG, self).__init__()
         self.in_channels = in_channels
         self.conv_layers = self.create_conv_layers(VGG_types["VGG16"])
 

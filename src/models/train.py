@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from dataset_maker import GtzanDataset
-from cnn import ConvoNetwork, VGG16
+from cnn import ConvoNetwork, VGG
 import matplotlib.pyplot as plt
 import librosa.display
 import time
@@ -30,9 +30,15 @@ writer = SummaryWriter("runs/" + timestamp + "_" + sysinfo.name)
 # Device
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
+# HYPERPARAMETERS
+# number of data samples propagated through the network before parameters are updated
 BATCH_SIZE = 100
-EPOCHS = 10
+EPOCHS = 10  # Number of times to iterate over the dataset
+# How much to update the model parameters at each batch/epoch.
+# NOTE: Smaller learning rate means slow learning speed, but more stable
 LEARNING_RATE = 0.0001
+
+# Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
 TEST_PERCENTAGE = 0.1
 TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
@@ -105,6 +111,7 @@ def train(model, data_loader, loss_fn, optimizer, epochs):
     print("Training finished")
 
 
+# TODO: Decompose Train and test loop
 def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
     """
     Train and Report
@@ -151,7 +158,8 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
 
         if avg_vloss < best_vloss:
             best_vloss = avg_vloss
-            model_path = f"models/{timestamp}_{sysinfo.name}_{epochs_num}.pth"
+            model_class_name = model.__class__.__name__
+            model_path = f"../results/{model_class_name}_{timestamp}_{sysinfo.name}_{epochs_num}.pth"
             torch.save(model.state_dict(), model_path)
             print("Saved best model")
             print(f"Model saved to {model_path}")
@@ -201,8 +209,8 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
-                         genres_dir=GENRES_DIR_LOCAL, device=DEVICE)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
+                         genres_dir=GENRES_DIR_CLOUD, device=DEVICE)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
@@ -242,7 +250,7 @@ if __name__ == "__main__":
 
     print("Creating model...")
     # Construct the model
-    cnn = VGG16().to(DEVICE)
+    cnn = VGG().to(DEVICE)
     print("Model created")
     print(cnn)
     print("-------------------")
