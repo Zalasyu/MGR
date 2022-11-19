@@ -338,12 +338,12 @@ if __name__ == "__main__":
     model_class_name = MODEL.__class__.__name__
 
     # Get root directory
-    root_dir = os.path.dirname(os.path.abspath(__file__))
-    print(f"Working directory: {root_dir}")
+    path = os.path.join(os.getcwd(), "..", "results")
+    print(f"path: {path}")
 
     # Get path to MGR/src/results directory
     model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pt"
-    model_path = os.path.join(root_dir + "/results", model_filename)
+    model_path = os.path.join(path, model_filename)
 
     torch.save(MODEL.state_dict(), model_path)
     print("Saved best model")
