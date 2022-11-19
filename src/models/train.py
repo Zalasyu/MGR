@@ -10,14 +10,14 @@ import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import numpy as np
 import datetime
+from GPUtil import showUtilization as gpu_usage
+from numba import cuda
 
 # TODO: Implement way to visualize training stage
 # TODO: Implement metrics
 # TODO: Implement a way to dynamically create initial weights for model
 # TODO: Implement Cross Validation
 
-# Empty GPU cache
-torch.cuda.empty_cache()
 
 # Get Time Stamp
 timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -202,6 +202,21 @@ def visualize_model(model, data_loader):
     writer.flush()
 
 
+def free_gpu_cache():
+    """
+    Free GPU cache
+    """
+    print("Initial GPU Usage")
+    gpu_usage()
+    torch.cuda.empty_cache()
+    cuda.select_device(0)
+    cuda.close()
+    cuda.select_device(0)
+
+    print("GPU Usage after emptying the cache")
+    gpu_usage()
+
+
 if __name__ == "__main__":
 
     ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
@@ -263,6 +278,9 @@ if __name__ == "__main__":
 
     # Adam is a popular optimizer for deep learning
     optimizer = torch.optim.Adam(cnn.parameters(), lr=LEARNING_RATE)
+
+    # Free GPU cache
+    free_gpu_cache()
 
     # Visualize the model
     visualize_model(cnn, training_data_loader)
