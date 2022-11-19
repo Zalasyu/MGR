@@ -225,6 +225,9 @@ if __name__ == "__main__":
     ANNOTATIONS_FILE_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/features_30_sec.csv"
     GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
+    # Free GPU cache
+    free_gpu_cache()
+
     # Load the data
     print("Loading data...")
     gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
@@ -278,9 +281,6 @@ if __name__ == "__main__":
 
     # Adam is a popular optimizer for deep learning
     optimizer = torch.optim.Adam(cnn.parameters(), lr=LEARNING_RATE)
-
-    # Free GPU cache
-    free_gpu_cache()
 
     # Visualize the model
     visualize_model(cnn, training_data_loader)
