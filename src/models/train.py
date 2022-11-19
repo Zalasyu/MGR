@@ -1,3 +1,4 @@
+import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader
@@ -6,11 +7,7 @@ from cnn import VGG
 import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
-import numpy as np
 import datetime
-from GPUtil import showUtilization as gpu_usage
-from numba import cuda
-import gc
 
 # TODO: Implement way to visualize training stage
 # TODO: Implement metrics
@@ -35,7 +32,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
 BATCH_SIZE = 25
-EPOCHS = 100  # Number of times to iterate over the dataset
+EPOCHS = 1  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
 LEARNING_RATE = 0.0001
@@ -339,7 +336,12 @@ if __name__ == "__main__":
 
     # Save the model
     model_class_name = MODEL.__class__.__name__
-    model_path = f"results/{model_class_name}_{timestamp}_{sysinfo.name}.pt"
+
+    # Get working directory
+    wdir = os.getcwd()
+    print(f"Working directory: {wdir}")
+
+    model_path = f"{model_class_name}_{timestamp}_{sysinfo.name}.pt"
     torch.save(MODEL.state_dict(), model_path)
     print("Saved best model")
     print(f"Model saved to {model_path}")
