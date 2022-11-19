@@ -84,6 +84,7 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
 
         # Gather data for reporting
         running_loss += loss.item()
+        print(f"Batch {i+1} loss: {loss.item()}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
