@@ -290,7 +290,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(MODEL.parameters(), lr=LEARNING_RATE)
 
     # Visualize the model
-    visualize_model(MODEL, training_data_loader)
+    visualize_model(training_data_loader)
 
     print("Training model...")
     # Train the model
