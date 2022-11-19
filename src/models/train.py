@@ -90,6 +90,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         optimizer.step()
 
         # Gather data for reporting
+        # Use .item() to get the value of the tensor save  GPU memory
         running_loss += loss.item()
         # print(f"Batch {i+1} loss: {loss.item()}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
@@ -102,64 +103,6 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
             running_loss = 0.0
 
     return last_loss
-
-
-def train_it_baby(train_dataloader, test_dataloader, loss_fn, optimizer):
-    """
-    Train and Report
-
-    Args:
-        model (_type_): _description_
-        train_dataloader (_type_): _description_
-        test_dataloader (_type_): _description_
-        optimizer (_type_): _description_
-        loss_fn (_type_): _description_
-        epochs (_type_): _description_
-    """
-    epochs_num = 0
-
-    # Validation loss
-    best_vloss = 1_000_000.
-
-    for epoch in range(EPOCHS):
-
-        MODEL.train(True)
-        avg_loss = train_one_epoch(train_dataloader, loss_fn, optimizer)
-        MODEL.train(False)
-
-        # Validation loss
-        print("Validating...")
-        running_vloss = 0.0
-        for i, vdata in enumerate(test_dataloader):
-            vinputs, vlabels = vdata
-
-            # Send data to device
-            vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
-
-            # Make a predictions for this batch
-            vloss = MODEL(vinputs)
-            vloss = loss_fn(vloss, vlabels)
-            running_vloss += vloss
-
-        avg_vloss = running_vloss / (i + 1)
-        print(f"LOSS train {avg_loss} valid {avg_vloss}")
-
-        # LOGGING
-        # Log the running loss averaged per batch for both training and validation
-        writer.add_scalars("Training vs Validation Loss",
-                           {"Training Loss": avg_loss, "Validation Loss": avg_vloss}, epochs_num + 1)
-        writer.flush()
-
-        # If the validation loss is better than the best validation loss, save the model
-        if avg_vloss < best_vloss:
-            best_vloss = avg_vloss
-            model_class_name = MODEL.__class__.__name__
-            model_path = f"../results/{model_class_name}_{timestamp}_{sysinfo.name}_{epochs_num}.pth"
-            torch.save(MODEL.state_dict(), model_path)
-            print("Saved best model")
-            print(f"Model saved to {model_path}")
-
-        epochs_num += 1
 
 
 def train(data_loader, loss_fn, optimizer):
@@ -209,11 +152,16 @@ def test(data_loader, loss_fn):
         loss = loss_fn(outputs, labels)
 
         # Gather data for reporting
-        running_loss += loss.item()
+        running_loss += loss.item()  # Use .item() to get the value of the tensor
 
         _, predicted = torch.max(outputs.data, 1)
+        # Show Confidence for each class
+        confidence = torch.nn.functional.softmax(outputs, dim=1)[0] * 100
+        print(f"Confidence: {confidence}")
+
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
+        writer.add_scalar("Loss/test", avg_loss, i + 1)
 
     avg_loss = running_loss / (i + 1)
     accuracy = 100.0*correct / total
@@ -221,11 +169,8 @@ def test(data_loader, loss_fn):
     print(f"Test Loss: {avg_loss}")
     print(f"Accuracy: {accuracy}")
 
-    # LOGGING
-    writer.add_scalar("Loss/test", avg_loss, 1)
+    # Add the data to tensorboard
     writer.flush()
-
-    print("Testing finished")
 
 
 def get_batch_create_img_grid(data_loader):
