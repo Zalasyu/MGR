@@ -178,6 +178,43 @@ def train(data_loader, loss_fn, optimizer):
     print("Training finished")
 
 
+def test(data_loader, loss_fn):
+    """
+    Test the model
+
+    Args:
+        data_loader (DataLoader): The data loader to use for testing
+        loss_fn (_type_): _description_
+    """
+    # We do not need gradients on to do reporting
+    MODEL.eval()
+
+    running_loss = 0.0
+    for i, data in enumerate(data_loader):
+        # Every data instance is a input and a label
+        inputs, labels = data
+
+        # Move the data to the device
+        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
+
+        # Make a predictions for this batch
+        outputs = MODEL(inputs)
+
+        # Calculate the loss and backpropagate
+        loss = loss_fn(outputs, labels)
+
+        # Gather data for reporting
+        running_loss += loss.item()
+
+    avg_loss = running_loss / (i + 1)
+    print(f"Test Loss: {avg_loss}")
+
+    writer.add_scalar("Loss/test", avg_loss, 1)
+    writer.flush()
+
+    print("Testing finished")
+
+
 def get_batch_create_img_grid(data_loader):
     """
     Extract one batch of data from the data loader
@@ -211,24 +248,6 @@ def visualize_model(data_loader):
 
     writer.add_graph(MODEL, images)
     writer.flush()
-
-
-def free_gpu_cache():
-    """
-    Free GPU cache
-    """
-    print("Initial GPU Usage")
-    gpu_usage()
-
-    # Garbage collection
-    gc.collect()
-    torch.cuda.empty_cache()
-    cuda.select_device(0)
-    cuda.close()
-    cuda.select_device(0)
-
-    print("GPU Usage after emptying the cache")
-    gpu_usage()
 
 
 if __name__ == "__main__":
@@ -292,11 +311,19 @@ if __name__ == "__main__":
 
     print("Training model...")
     # Train the model
-    # train(cnn, training_data_loader, loss_fn, optimizer)
     t_start = time.perf_counter()
 
-    train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
+    # train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
+    train(training_data_loader, loss_fn, optimizer)
 
     t_end = time.perf_counter()
     print(f"Training took {t_end - t_start} seconds")
     print("Model trained")
+    print("-------------------")
+
+    # Test the model
+    print("Testing model...")
+    t_start = time.perf_counter()
+    test(test_data_loader, loss_fn)
+    print("Model tested")
+    print("-------------------")
