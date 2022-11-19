@@ -144,7 +144,7 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
             # Make a predictions for this batch
             vloss = model(vinputs)
             vloss = loss_fn(vloss, vlabels)
-            running_vloss += vloss
+            running_vloss += vloss.item()
 
         avg_vloss = running_vloss / (i + 1)
         print(f"LOSS train {avg_loss} valid {avg_vloss}")
