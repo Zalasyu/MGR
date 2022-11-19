@@ -2,9 +2,7 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from dataset_maker import GtzanDataset
-from cnn import ConvoNetwork, VGG
-import matplotlib.pyplot as plt
-import librosa.display
+from cnn import VGG
 import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
@@ -47,6 +45,13 @@ VALIDATION_PERCENTAGE = 0.2
 TEST_PERCENTAGE = 0.1
 TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
+print("Creating model...")
+# Construct the model
+MODEL = VGG().to(DEVICE)
+print("Model created")
+print(MODEL)
+print("-------------------")
+
 
 def train_one_epoch(model, data_loader, loss_fn, optimizer):
     """
@@ -67,13 +72,12 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
         inputs, labels = data
 
         # Move the data to the device
-        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
 
         # Zero the parameter gradients for every batch
         optimizer.zero_grad()
 
         # Make a predictions for this batch
-        outputs = model(inputs)
+        outputs = MODEL(inputs)
 
         # Calculate the loss and backpropagate
         loss = loss_fn(outputs, labels)
@@ -85,25 +89,27 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer):
         # Gather data for reporting
         running_loss += loss.item()
         print(f"Batch {i+1} loss: {loss.item()}")
-        print(f"i % {BATCH_SIZE} = {i % BATCH_SIZE}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
+
+            tb_x = i * len(data_loader) + i + 1
+
+            writer.add_scalar("Loss/train", last_loss, tb_x)
             running_loss = 0.0
 
-    return model, last_loss
+    return last_loss
 
 
-def train(model, data_loader, loss_fn, optimizer):
+def train(data_loader, loss_fn, optimizer):
     for i in range(EPOCHS):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
-        model.train(True)
-        last_loss = train_one_epoch(
-            model, data_loader, loss_fn, optimizer)
+        MODEL.train(True)
+        last_loss = train_one_epoch(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
-        model.train(False)
+        MODEL.train(False)
         tb_x = i * len(data_loader.dataset) + i + 1
         writer.add_scalar("Loss/train", last_loss, tb_x)
         t1 = time.perf_counter()
@@ -115,9 +121,7 @@ def train(model, data_loader, loss_fn, optimizer):
 
 
 # TODO: Decompose Train and test loop
-# TODO: URGENT cannot have  training and validation loop in one method since
-# it loads in two different models and uses all the gpu memory
-def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
+def train_it_baby(train_dataloader, test_dataloader, loss_fn, optimizer):
     """
     Train and Report
 
@@ -135,27 +139,26 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
     best_vloss = 1_000_000.
 
     for epoch in range(EPOCHS):
-        t_start = time.perf_counter()
-        model.train(True)
-        model, avg_loss = train_one_epoch(
-            model, train_dataloader, loss_fn, optimizer)
-        model.train(False)
+
+        MODEL.train(True)
+        avg_loss = train_one_epoch(train_dataloader, loss_fn, optimizer)
+        MODEL.train(False)
 
         # Validation loss
+        print("Validating...")
         running_vloss = 0.0
-        model.eval()
-        for i, data in enumerate(test_dataloader):
-            vinputs, vlabels = data
-            vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
+        for i, vdata in enumerate(test_dataloader):
+            vinputs, vlabels = vdata
+
+            # Send data to device
 
             # Make a predictions for this batch
-            vloss = model(vinputs)
+            vloss = MODEL(vinputs)
             vloss = loss_fn(vloss, vlabels)
-            running_vloss += vloss.item()
+            running_vloss += vloss
 
         avg_vloss = running_vloss / (i + 1)
-        accuracy = 1 - avg_vloss
-        print(f"LOSS train {avg_loss} valid {avg_vloss} accuracy {accuracy}")
+        print(f"LOSS train {avg_loss} valid {avg_vloss}")
 
         # LOGGING
         # Log the running loss averaged per batch for both training and validation
@@ -163,15 +166,16 @@ def train_it_baby(model, train_dataloader, test_dataloader, loss_fn, optimizer):
                            {"Training Loss": avg_loss, "Validation Loss": avg_vloss}, epochs_num + 1)
         writer.flush()
 
-        # Track best performance, and save model
-
+        # If the validation loss is better than the best validation loss, save the model
         if avg_vloss < best_vloss:
             best_vloss = avg_vloss
-            model_class_name = model.__class__.__name__
+            model_class_name = MODEL.__class__.__name__
             model_path = f"../results/{model_class_name}_{timestamp}_{sysinfo.name}_{epochs_num}.pth"
-            torch.save(model.state_dict(), model_path)
+            torch.save(MODEL.state_dict(), model_path)
             print("Saved best model")
             print(f"Model saved to {model_path}")
+
+        epochs_num += 1
 
 
 def get_batch_create_img_grid(data_loader):
@@ -193,7 +197,7 @@ def get_batch_create_img_grid(data_loader):
     return img_grid
 
 
-def visualize_model(model, data_loader):
+def visualize_model(data_loader):
     """
     Use Tensorboard to examine the data flow within the model.
 
@@ -204,7 +208,7 @@ def visualize_model(model, data_loader):
     dataiter = iter(data_loader)
     images, labels = dataiter.next()
 
-    writer.add_graph(model, images)
+    writer.add_graph(MODEL, images)
     writer.flush()
 
 
@@ -259,13 +263,13 @@ if __name__ == "__main__":
     print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
     test_data_loader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
     print("Data loaders created")
     print("-------------------")
@@ -278,36 +282,24 @@ if __name__ == "__main__":
     writer.flush()
     print("-------------------")
 
-    print("Creating model...")
-    # Construct the model
-    cnn = VGG().to(DEVICE)
-    print("Model created")
-    print(cnn)
-    print("-------------------")
-
     # Instantiate Loss function and Optimizer
     # CrossEntropyLoss is used for classification
     loss_fn = nn.CrossEntropyLoss()
 
     # Adam is a popular optimizer for deep learning
-    optimizer = torch.optim.Adam(cnn.parameters(), lr=LEARNING_RATE)
+    optimizer = torch.optim.Adam(MODEL.parameters(), lr=LEARNING_RATE)
 
     # Visualize the model
-    visualize_model(cnn, training_data_loader)
+    visualize_model(MODEL, training_data_loader)
 
     print("Training model...")
     # Train the model
     # train(cnn, training_data_loader, loss_fn, optimizer)
-    train_it_baby(cnn, training_data_loader,
+    t_start = time.perf_counter()
+
+    train_it_baby(MODEL, training_data_loader,
                   test_data_loader, loss_fn, optimizer)
+
+    t_end = time.perf_counter()
+    print(f"Training took {t_end - t_start} seconds")
     print("Model trained")
-
-    # Test the model
-
-    # Validate models
-
-    # Save the model
-    # Name of Model based on system and time
-    # model_name = "CNN" + timestamp + "_" + sysinfo + ".pth"
-
-    # torch.save(cnn.state_dict(), "CNN.pth")
