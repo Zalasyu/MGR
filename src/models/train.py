@@ -338,7 +338,7 @@ if __name__ == "__main__":
     model_class_name = MODEL.__class__.__name__
 
     # Get root directory
-    path = os.path.join(os.getcwd(), "..", "results")
+    path = os.path.join(os.path.dirname(__file__), "results")
     print(f"path: {path}")
 
     # Get path to MGR/src/results directory
