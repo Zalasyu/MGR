@@ -116,9 +116,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
 
-            tb_x = i * len(data_loader) + i + 1
-
-            writer.add_scalar("Loss/train", last_loss, tb_x)
+            writer.add_scalar("Loss/train", last_loss, i + 1)
             running_loss = 0.0
 
     return last_loss
