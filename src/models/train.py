@@ -235,7 +235,7 @@ if __name__ == "__main__":
     GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
     # Free GPU cache
-    print(torch.cuda.memory_summary())
+    # print(torch.cuda.memory_summary())
 
     # Load the data
     print("Loading data...")
@@ -286,7 +286,7 @@ if __name__ == "__main__":
     visualize_model(training_data_loader)
 
     # Initialize the model with kaiming initialization
-    kaiming_init()
+    # kaiming_init()
 
     print("Training model...")
     # Train the model
