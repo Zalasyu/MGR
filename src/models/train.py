@@ -76,6 +76,32 @@ def kaiming_init():
             param.data.normal_(0, math.sqrt(2) / math.sqrt(param.shape[1]))
 
 
+def train_one_epoch_medium(data_loader, loss_fn, optimizer):
+    running_loss = 0.0
+    avg_loss = 0.0
+    optimizer.zero_grad(set_to_none=True)
+    scaler = torch.cuda.amp.GradScaler()
+    for i, (features, target) in enumerate(data_loader):
+
+        # Non=blocking and overlapping
+        features = features.to('cudo:0', non_blocking=True)
+        target = target.to('cudo:0', non_blocking=True)
+
+        with torch.cuda.amp.autocast():
+            output = MODEL(features)
+            loss = loss_fn(output, target)
+
+        scaler.scale(loss).backward()
+        running_loss += loss.item()
+        print(f"Batch {i+1} loss: {loss.item()}")
+        if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
+            scaler.step(optimizer)
+            scaler.update()
+            avg_loss = running_loss / BATCH_SIZE
+            optimizer.zero_grad(set_to_none=True)
+        return avg_loss
+
+
 def train_one_epoch(data_loader, loss_fn, optimizer):
     """
     Train the model for one epoch
@@ -127,7 +153,7 @@ def train(data_loader, loss_fn, optimizer):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        avg_loss = train_one_epoch(data_loader, loss_fn, optimizer)
+        avg_loss = train_one_epoch_medium(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         MODEL.train(False)
