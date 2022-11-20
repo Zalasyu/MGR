@@ -44,7 +44,7 @@ BATCH_SIZE = 32
 EPOCHS = 40  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
-LEARNING_RATE = 0.0005
+LEARNING_RATE = 0.0001
 
 # Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
@@ -53,7 +53,7 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
 print("Creating model...")
 # Construct the model
-MODEL = VGG(VGG_type="VGG19").to(DEVICE)
+MODEL = VGG(VGG_type="VGG16").to(DEVICE)
 MODEL_ARCHITECTURE = str(MODEL.get_model_name())
 print("Model created")
 print(MODEL)
@@ -83,32 +83,6 @@ def kaiming_init():
             param.data.normal_(0, math.sqrt(2) / math.sqrt(param.shape[1]))
 
 
-def train_one_epoch_medium(data_loader, loss_fn, optimizer):
-    running_loss = 0.0
-    avg_loss = 0.0
-    optimizer.zero_grad(set_to_none=True)
-    scaler = torch.cuda.amp.GradScaler()
-    for i, (features, target) in enumerate(data_loader):
-
-        # Non=blocking and overlapping
-        features = features.to('cuda:0', non_blocking=True)
-        target = target.to('cuda:0', non_blocking=True)
-
-        with torch.cuda.amp.autocast():
-            output = MODEL(features)
-            loss = loss_fn(output, target)
-
-        scaler.scale(loss).backward()
-        running_loss += loss
-        print(f"Batch {i+1} loss: {loss}")
-        if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
-            scaler.step(optimizer)
-            scaler.update()
-            avg_loss = running_loss / BATCH_SIZE
-            optimizer.zero_grad(set_to_none=True)
-        return avg_loss
-
-
 def train_one_epoch(data_loader, loss_fn, optimizer):
     """
     Train the model for one epoch
@@ -119,14 +93,13 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         optimizer (_type_): _description_
     """
     running_loss = 0.0
-    last_loss = 0.0
+    avg_loss = 0.0
     for i, data in enumerate(data_loader):
         # Every data instance is a input and a label
         inputs, labels = data
 
         # Move the data to the device
-        inputs, labels = inputs.to(DEVICE, non_blocking=True), labels.to(
-            DEVICE, non_blocking=True)
+        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
 
         # Zero the parameter gradients for every batch
         optimizer.zero_grad()
@@ -346,7 +319,7 @@ if __name__ == "__main__":
     print("-------------------")
 
     # Save the model
-    model_name = MODEL.get_model_name
+    model_name = MODEL.get_model_name()
 
     # Get root directory
     path = os.path.join(os.getcwd(), "saved_models")
