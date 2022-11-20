@@ -133,6 +133,7 @@ def train(tloader, vloader, loss_fn, optimizer):
         running_vloss = 0.0
         for i, vdata in enumerate(vloader):
             vinputs, vlabels = vdata
+            vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
             voutputs = MODEL(vinputs)
             vloss = loss_fn(voutputs, vlabels)
             running_vloss += vloss
