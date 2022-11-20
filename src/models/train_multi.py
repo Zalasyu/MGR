@@ -43,7 +43,8 @@ class Trainer:
             criterion: torch.nn.Module,
             save_every: int,
             snapshot_path: str) -> None:
-        self.gpu_id = int(os.environ["LOCAL_RANK"])
+        self.local_rank = int(os.environ["LOCAL_RANK"])
+        self.global_rank = int(os.environ["RANK"])
         self.model = model.to(self.gpu_id)
         self.optimizer = optimizer
         self.criterion = criterion
