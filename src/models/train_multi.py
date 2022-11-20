@@ -29,7 +29,7 @@ TIMESTAMP = datetime.datetime.now().strftime("%m-%d-%Y--%H:%M")
 # WRITER = SummaryWriter()
 
 
-def ddp_setup(rank, world_size):
+def ddp_setup():
     init_process_group(backend="nccl")
 
 
