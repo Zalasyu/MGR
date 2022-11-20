@@ -71,7 +71,6 @@ class Trainer:
         output = self.model(source)
         loss = self.criterion(output, targets)
         loss.backward()
-        print(f"Loss: {loss}")
         self.optimizer.step()
 
     def _run_epoch(self, epoch):
@@ -86,7 +85,7 @@ class Trainer:
         # We need to access module since it was wrapped with DDP
         checkpoint = self.model.module.state_dict()
         # Save the model
-        model_name = self.model.get_model_name()
+        model_name = self.model.module.get_model_name()
 
         # Get path to MGR/src/results directory
         model_filename = f"{model_name}_{TIMESTAMP}_Epoch{epoch}.pth"
