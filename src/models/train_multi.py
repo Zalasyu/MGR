@@ -29,6 +29,22 @@ TIMESTAMP = datetime.datetime.now().strftime("%m-%d-%Y--%H:%M")
 WRITER = SummaryWriter()
 
 
+def ddp_setup(rank, world_size):
+    """
+    Initialize the distributed environment.
+    Args:
+        rank (_type_): A unique identifier for each process.
+        world_size (_type_): Total number of processes in a group
+    """
+
+    # MASTER b/c it coordinates the communications between the other processes
+    # IP address of the machine that is running the rank 0
+    os.environ['MASTER_ADDR'] = 'localhost'
+    os.environ['MASTER_PORT'] = '12355'
+    # nccl is a communication backend that is used for multi-GPU training
+    init_process_group("nccl", rank=rank, world_size=world_size)
+
+
 class Trainer:
     def __init__(
             self,
@@ -47,6 +63,9 @@ class Trainer:
         self.val_data = val_data,
         self.save_every = save_every
 
+        # Wrap the model with DDP
+        self.model = DDP(self.model, device_ids=[self.gpu_id])
+
     def _run_batch(self, source, targets):
         self.optimizer.zero_grad()
         output = self.model(source)
@@ -64,7 +83,8 @@ class Trainer:
             self._run_batch(source.to(self.gpu_id), targets.to(self.gpu_id))
 
     def _save_checkpoint(self, epoch):
-        checkpoint = self.model.state_dict()
+        # We need to access module since it was wrapped with DDP
+        checkpoint = self.model.module.state_dict()
         # Save the model
         model_name = self.model.get_model_name()
 
@@ -80,7 +100,9 @@ class Trainer:
     def train(self, max_epochs: int):
         for epoch in tqdm(range(max_epochs)):
             self._run_epoch(epoch)
-            if epoch % self.save_every == 0:
+
+            # Save only from master process since all other nodes will have the same model
+            if epoch % self.save_every == 0 and self.gpu_id == 0:
                 self._save_checkpoint(epoch)
 
 # Load Train Objects
@@ -93,35 +115,38 @@ def load_train_objs():
     train_set = GtzanDataset(ANNOTATIONS_FILE_CLOUD, GENRES_DIR_CLOUD)
 
     # load YOUR model
+    # Types of VGG available: VGG11, VGG13, VGG16, VGG19
     model = VGG(VGG_type="VGG16")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss()
     return train_set, model, optimizer, criterion
 
 
-def prepare_dataloader(dataset: Dataset, batch_size: int, shuffle: bool) -> DataLoader:
+def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
+
+    # Create a DistributedSampler to handle distributing the dataset across nodes
     return DataLoader(
         dataset,
         batch_size=batch_size,
-        shuffle=shuffle
+        shuffle=False
+        sampler=DistributedSampler(dataset)
     )
 
 
-def main(device, total_epochs, save_every):
+def main(rank: int, worldsize: int, total_epochs, save_every):
+    ddp_setup(rank, worldsize)
     dataset, model, optimizer, criterion = load_train_objs()
-    train_data = prepare_dataloader(dataset, 32, True)
-
-    # Get Batch Size from dataloader
-    print(train_data.batch_size)
-
+    train_data = prepare_dataloader(dataset, 32)
     trainer = Trainer(model, train_data, None, optimizer,
-                      criterion, device, save_every)
+                      criterion, rank, save_every)
     trainer.train(total_epochs)
+    destroy_process_group()
 
 
 if __name__ == "__main__":
     import sys
     total_epochs = int(sys.argv[1])
     save_every = int(sys.argv[2])
-    device = 0  # Shorthand for cuda:0
-    main(device, total_epochs, save_every)
+    world_size = torch.cuda.device_count()  # Shorthand for cuda:0
+    mp.spawn(main, args=(world_size, total_epochs, save_every),
+             nprocs=world_size)
