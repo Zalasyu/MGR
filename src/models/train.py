@@ -294,7 +294,7 @@ if __name__ == "__main__":
     print(f"path: {path}")
 
     # Get path to MGR/src/results directory
-    model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pt"
+    model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pth"
     model_path = os.path.join(path, model_filename)
 
     torch.save(MODEL.state_dict(), model_path)
