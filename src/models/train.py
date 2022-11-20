@@ -8,6 +8,7 @@ import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import datetime
+import math
 
 # Multi-GPU support
 import torch.multiprocessing as mp
@@ -58,7 +59,7 @@ print(MODEL)
 print("-------------------")
 
 
-def equal_var_init(fill=0.0):
+def kaiming_init():
     """
     Initialize the weights of the model with a constant value
 
@@ -66,7 +67,13 @@ def equal_var_init(fill=0.0):
         fill (float, optional): _description_. Defaults to 0.0.
     """
     for name, param in MODEL.named_parameters():
-        param.data.fill_(fill)
+        print(f"Name: {name}")
+        if name.endswith(".bias"):
+            param.data.fill(0)
+        elif name.startswith("layer.0"):
+            param.data.normal_(0, 1 / math.sqrt(param.shape[1]))
+        else:
+            param.data.normal_(0, math.sqrt(2) / math.sqrt(param.shape[1]))
 
 
 def train_one_epoch(data_loader, loss_fn, optimizer):
@@ -117,42 +124,20 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     return last_loss
 
 
-def train(tloader, vloader, loss_fn, optimizer):
-    epoch_num = 0
-    best_vloss = 1_000_000.0
-
+def train(data_loader, loss_fn, optimizer):
     for i in range(EPOCHS):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        avg_loss = train_one_epoch(tloader, loss_fn, optimizer)
+        last_loss = train_one_epoch(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         MODEL.train(False)
-
-        running_vloss = 0.0
-        for i, vdata in enumerate(vloader):
-            vinputs, vlabels = vdata
-            vinputs, vlabels = vinputs.to(DEVICE), vlabels.to(DEVICE)
-            voutputs = MODEL(vinputs)
-            vloss = loss_fn(voutputs, vlabels)
-            running_vloss += vloss
-
-        avg_vloss = running_vloss / (i + 1)
-        print(f"LOSS train: {avg_loss} validation: {avg_vloss}")
-
-        # Log the loss to tensorboard
-        writer.add_scalars("Train/Validation Loss",
-                           {"train": avg_loss, "validation": avg_vloss}, epoch_num + 1)
-        writer.flush()
-
-        # Track best performance ( Early Stopping )
-        if avg_vloss < best_vloss:
-            best_vloss = avg_vloss
-            print("Saving best model")
-            torch.save(MODEL.state_dict(), "best_model.pt")
-
-        epoch_num += 1
+        writer.add_scalar("Loss/train", last_loss, i + 1)
+        t1 = time.perf_counter()
+        print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
+        print(" ------------------- ")
+    writer.flush()
 
     print("Training finished")
 
@@ -300,12 +285,15 @@ if __name__ == "__main__":
     # Visualize the model
     visualize_model(training_data_loader)
 
+    # Initialize the model with kaiming initialization
+    kaiming_init()
+
     print("Training model...")
     # Train the model
     t_start = time.perf_counter()
 
     # train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
-    train(training_data_loader, val_data_loader, loss_fn, optimizer)
+    train(training_data_loader, loss_fn, optimizer)
 
     t_end = time.perf_counter()
     print(f"Training took {t_end - t_start} seconds")
@@ -327,10 +315,10 @@ if __name__ == "__main__":
     print(f"path: {path}")
 
     # Get path to MGR/src/results directory
-    #model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pth"
-    #model_path = os.path.join(path, model_filename)
+    model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pth"
+    model_path = os.path.join(path, model_filename)
 
-    #torch.save(MODEL.state_dict(), model_path)
-    #print("Saved best model")
-    #print(f"Model saved to {model_path}")
-    # print("-------------------")
+    torch.save(MODEL.state_dict(), model_path)
+    print("Saved best model")
+    print(f"Model saved to {model_path}")
+    print("-------------------")
