@@ -26,8 +26,8 @@ class VGG(nn.Module):
     def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584):
         super(VGG, self).__init__()
         self.in_channels = in_channels
-        self.conv_layers = self.create_conv_layers(VGG_types["VGG11"])
-        self.name_of_model = "VGG11"
+        self.conv_layers = self.create_conv_layers(VGG_types["VGG16"])
+        self.name_of_model = "VGG16"
 
         self.height_out_after_conv = img_height // 2**5
         self.width_out_after_conv = img_width // 2**5

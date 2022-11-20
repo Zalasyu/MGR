@@ -181,3 +181,7 @@ cython_debug/
 
 # Ignore runs directory (For tensorboard reporting)
 runs/
+
+# Ignore models
+*.pt
+*.pth

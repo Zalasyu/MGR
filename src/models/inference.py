@@ -1,4 +1,4 @@
-from cnn import VGG
+from .cnn import VGG
 import torch
 import torchaudio
 import os
@@ -15,7 +15,7 @@ N_MELS = 64  # Number of mel bands
 # Model Path to best saved model in saved_models directory
 # TODO: Change this to your model path
 MODEL_FILENAME = "VGG_20221119-140809_Tesla V100-SXM3-32GB.pt"
-MODEL_PATH = os.path.abspath(MODEL_FILENAME)
+MODEL_PATH = "/home/zalasyu/Documents/467-CS/MGR/src/models/" + MODEL_FILENAME
 print(MODEL_PATH)
 
 
@@ -149,7 +149,7 @@ if __name__ == "__main__":
     # Load the weights with the best validation accuracy
     state_dict = torch.load(MODEL_PATH)
     model.load_state_dict(state_dict)
-    print("Model loaded")
+    # printr("Model loaded")
 
     miniTransform = TransformInputSong(
         num_samples=NUM_SAMPLES,

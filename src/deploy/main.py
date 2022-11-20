@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 
 # import Oracle from src.models.inference
 from src.models.inference import Oracle
-
+import os
 
 # Create the application instance
 app = Flask(__name__)
@@ -24,6 +24,7 @@ def predict():
     if request.method == "POST":
         # Get the audio file from the request
         audio_file = request.files["file"]
+        print(audio_file)
 
         # Input Checking
         if audio_file is None or audio_file.filename == "":
@@ -33,9 +34,12 @@ def predict():
             return jsonify({"error": "File type not supported."})
 
         # try:
-        waveform = audio_file.read()
+        audio_file = request.files['file']
+
+        save_path = os.path.join(os.getcwd(), 'tmp.wav')
+
         TheOracle = Oracle()
-        predictions = TheOracle.get_predictions(waveform)
+        predictions = TheOracle.get_predictions(audio_file)
         data = {"Confidence Interval": predictions}
         return jsonify(data)
 
