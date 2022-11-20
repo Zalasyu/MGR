@@ -113,7 +113,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     """
     running_loss = 0.0
     last_loss = 0.0
-
+    optimizer.zero_grad()
     for i, data in enumerate(data_loader):
         # Every data instance is a input and a label
         inputs, labels = data
@@ -140,10 +140,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
             optimizer.step()
             avg_loss = running_loss / BATCH_SIZE
-            print(f"Batch {i+1} loss: {last_loss}")
-
-            # writer.add_scalar("Loss/train", last_loss, i + 1)
-            running_loss = 0.0
+            optimizer.zero_grad()
 
     return avg_loss
 
