@@ -16,14 +16,14 @@ class GtzanDataset(Dataset):
 
     Advanced version uses multiprocessing to speed up ETL process
     """
-    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def __init__(self, annotations_file, genres_dir, device=DEVICE):
+    def __init__(self, annotations_file, genres_dir):
         """
         Constructor method to create blank training data list
         and genre dictionary.
         """
-        self.device = device
+        self.device = torch.device(
+            f"cuda:{}" if torch.cuda.is_available() else "cpu")
 
         self.genres_dir = genres_dir
         self.annotations = pd.read_csv(annotations_file)
@@ -93,7 +93,6 @@ class GtzanDataset(Dataset):
         signal, sr = torchaudio.load(audio_file_path)
 
         # Load signal to device: CPU or GPU
-        signal = signal.to(self.device)
 
         signal = self._resample(signal, sr)
         signal = self._uniformize_to_mono(signal)
@@ -158,7 +157,7 @@ class GtzanDataset(Dataset):
         """
         if sr != self.SAMPLE_RATE:
             resampler = torchaudio.transforms.Resample(  # Resample to 44.1 kHz
-                orig_freq=sr, new_freq=self.SAMPLE_RATE).to(self.device)
+                orig_freq=sr, new_freq=self.SAMPLE_RATE)
             signal = resampler(signal)
         return signal
 
@@ -195,7 +194,7 @@ class GtzanDataset(Dataset):
             sample_rate=self.SAMPLE_RATE,
             n_fft=self.N_FFT,
             hop_length=self.HOP_LENGTH,
-            n_mels=self.N_MELS).to(self.device)
+            n_mels=self.N_MELS)
 
         # MelSpectrogram is a class that can be called like a function.
         mel_img = mel_generator(signal)
