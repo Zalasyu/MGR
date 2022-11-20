@@ -80,4 +80,4 @@ class TestTrainingData:
         """Tests that numpy dataset has correct count"""
         training_data = numpy.load(
             'tests/test_data/training_data.npy', allow_pickle=True)
-        assert len(training_data) == 3
+        assert len(training_data) ==
