@@ -31,17 +31,24 @@ class TransformInputSong:
     # object x of class X can now be called as a function like so: x()
     def __call__(self, input):
         waveform, sample_rate = torchaudio.load(input)
+        print(waveform.shape)
         waveform = self._resample(waveform, sample_rate)
         waveform = self._mixdown_to_mono(waveform)
         waveform = self._cut(waveform)
         waveform = self._right_pad(waveform)
 
-        mel_spectrogram = torchaudio.transforms.MelSpectrogram(
+        mel_generator = torchaudio.transforms.MelSpectrogram(
             sample_rate=self.sample_rate,
             n_fft=self.n_fft,
             hop_length=self.hop_length,
             n_mels=self.n_mels
-        )(waveform)
+        )
+
+        mel_spectrogram = mel_generator(waveform)
+
+        # Add batch dimension
+        mel_spectrogram = mel_spectrogram.unsqueeze(0)
+
         return mel_spectrogram
 
     def _mixdown_to_mono(self, signal):
@@ -126,7 +133,7 @@ class Oracle():
 
         return mapped
 
-    def _map_class_to_confidence(self, class_index, confidence_list):
+    def _map_class_to_confidence(self, confidence_list):
         """
         Maps the class index to the class name and returns the confidence
         Args:
@@ -134,8 +141,7 @@ class Oracle():
         """
         # Combine corresponding class and confidence into a dictionary
         mapped_class = dict(zip(CLASS_MAPPING, confidence_list))
-        print(f"Class: {CLASS_MAPPING[class_index]}")
-        return mapped_class[CLASS_MAPPING[class_index]]
+        return mapped_class
 
 
 if __name__ == "__main__":

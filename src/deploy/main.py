@@ -36,7 +36,10 @@ def predict():
         # try:
         audio_file = request.files['file']
 
-        save_path = os.path.join(os.getcwd(), 'tmp.wav')
+        save_path = os.path.join(os.getcwd(), 'temp.wav')
+        audio_file.save(save_path)
+
+        audio_file = save_path
 
         TheOracle = Oracle()
         predictions = TheOracle.get_predictions(audio_file)
