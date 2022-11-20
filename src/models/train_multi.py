@@ -88,7 +88,7 @@ class Trainer:
 def load_train_objs():
 
     # Load YOUR dataset
-    train_set = GtzanDataset(ANNOTATIONS_FILE_LOCAL, GENRES_DIR_LOCAL)
+    train_set = GtzanDataset(ANNOTATIONS_FILE_CLOUD, GENRES_DIR_CLOUD)
 
     # load YOUR model
     model = VGG(VGG_type="VGG16")
