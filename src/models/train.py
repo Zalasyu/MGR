@@ -69,7 +69,7 @@ def kaiming_init():
     for name, param in MODEL.named_parameters():
         print(f"Name: {name}")
         if name.endswith(".bias"):
-            param.data.fill(0)
+            param.data.fill_(0)
         elif name.startswith("layer.0"):
             param.data.normal_(0, 1 / math.sqrt(param.shape[1]))
         else:
