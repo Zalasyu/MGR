@@ -32,12 +32,12 @@ def predict():
         if not allowed_file(audio_file.filename):
             return jsonify({"error": "File type not supported."})
 
-        try:
-            waveform = audio_file.read()
-            TheOracle = n.Oracle()
-            predictions = TheOracle.get_predictions(waveform)
-            data = {"Confidence Interval": predictions}
-            return jsonify(data)
+        # try:
+        waveform = audio_file.read()
+        TheOracle = Oracle()
+        predictions = TheOracle.get_predictions(waveform)
+        data = {"Confidence Interval": predictions}
+        return jsonify(data)
 
-        except:
-            return jsonify({"error": "File could not be read."})
+        # except:
+        #   return jsonify({"error": "File could not be read."})

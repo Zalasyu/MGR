@@ -44,7 +44,7 @@ BATCH_SIZE = 15
 EPOCHS = 100  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
-LEARNING_RATE = 0.0004
+LEARNING_RATE = 0.0001
 
 # Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
@@ -287,6 +287,10 @@ if __name__ == "__main__":
 
     # Initialize the model with kaiming initialization
     # kaiming_init()
+    # Print model's state_dict
+    print("Model's state_dict:")
+    for param_tensor in MODEL.state_dict():
+        print(param_tensor, "\t", MODEL.state_dict()[param_tensor].size())
 
     print("Training model...")
     # Train the model

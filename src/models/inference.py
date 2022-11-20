@@ -1,6 +1,7 @@
-from .cnn import VGG
+from cnn import VGG
 import torch
 import torchaudio
+import os
 
 CLASS_MAPPING = ["blues", "classical", "country", "disco",
                  "hiphop", "jazz", "metal", "pop", "reggae", "rock"]
@@ -13,7 +14,9 @@ N_MELS = 64  # Number of mel bands
 
 # Model Path to best saved model in saved_models directory
 # TODO: Change this to your model path
-MODEL_PATH = "saved_models/*.pth"
+MODEL_FILENAME = "VGG_20221119-140809_Tesla V100-SXM3-32GB.pt"
+MODEL_PATH = os.path.abspath(MODEL_FILENAME)
+print(MODEL_PATH)
 
 
 class TransformInputSong:
@@ -144,7 +147,7 @@ if __name__ == "__main__":
 
     model = VGG()
     # Load the weights with the best validation accuracy
-    state_dict = torch.load("./saved_models/" + MODEL_NAME + ".pth")
+    state_dict = torch.load(MODEL_PATH)
     model.load_state_dict(state_dict)
     print("Model loaded")
 
