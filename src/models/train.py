@@ -93,7 +93,7 @@ def train_one_epoch_medium(data_loader, loss_fn, optimizer):
 
         scaler.scale(loss).backward()
         running_loss += loss.item()
-        print(f"Batch {i+1} loss: {loss.item()}")
+        print(f"Batch {i+1} loss: {loss}")
         if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
             scaler.step(optimizer)
             scaler.update()
@@ -282,10 +282,10 @@ if __name__ == "__main__":
     print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=False)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
     test_data_loader = DataLoader(
         test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
