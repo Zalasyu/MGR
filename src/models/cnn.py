@@ -44,6 +44,9 @@ class VGG(nn.Module):
             nn.Linear(4096, num_classes)
         )
 
+    def get_model_name(self):
+        return self.name_of_model
+
     def forward(self, x):
 
         # Pass the input through the convolutional layers

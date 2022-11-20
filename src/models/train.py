@@ -54,6 +54,7 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 print("Creating model...")
 # Construct the model
 MODEL = VGG(VGG_type="VGG19").to(DEVICE)
+MODEL_ARCHITECTURE = str(MODEL.get_model_name())
 print("Model created")
 print(MODEL)
 print("-------------------")
@@ -145,7 +146,6 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
 
 
 def train(data_loader, loss_fn, optimizer):
-    torch.backends.cudnn.benchmark = True
 
     for i in range(EPOCHS):
         t0 = time.perf_counter()
@@ -337,14 +337,14 @@ if __name__ == "__main__":
     print("-------------------")
 
     # Save the model
-    model_class_name = MODEL.__class__.__name__
+    model_name = MODEL.get_model_name
 
     # Get root directory
     path = os.path.join(os.getcwd(), "saved_models")
     print(f"path: {path}")
 
     # Get path to MGR/src/results directory
-    model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pth"
+    model_filename = f"{model_name}_{timestamp}_{sysinfo.name}.pth"
     model_path = os.path.join(path, model_filename)
 
     torch.save(MODEL.state_dict(), model_path)
