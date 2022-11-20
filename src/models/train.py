@@ -132,13 +132,13 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         loss.backward()
 
         # Update the weights (Learning)
-        optimizer.step()
 
         # Gather data for reporting
         # Use .item() to get the value of the tensor save  GPU memory
         running_loss += loss.item()
         print(f"Batch {i+1} loss: {loss.item()}")
-        if i % BATCH_SIZE == BATCH_SIZE - 1:
+        if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
+            optimizer.step()
             avg_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
 
@@ -153,7 +153,7 @@ def train(data_loader, loss_fn, optimizer):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        avg_loss = train_one_epoch_medium(data_loader, loss_fn, optimizer)
+        avg_loss = train_one_epoch(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         MODEL.train(False)
@@ -307,7 +307,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(MODEL.parameters(), lr=LEARNING_RATE)
 
     # Visualize the model
-    visualize_model(training_data_loader)
+    # visualize_model(training_data_loader)
 
     # Initialize the model with kaiming initialization
     # kaiming_init()
