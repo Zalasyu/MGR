@@ -30,19 +30,7 @@ TIMESTAMP = datetime.datetime.now().strftime("%m-%d-%Y--%H:%M")
 
 
 def ddp_setup(rank, world_size):
-    """
-    Initialize the distributed environment.
-    Args:
-        rank (_type_): A unique identifier for each process.
-        world_size (_type_): Total number of processes in a group
-    """
-
-    # MASTER b/c it coordinates the communications between the other processes
-    # IP address of the machine that is running the rank 0
-    os.environ['MASTER_ADDR'] = 'localhost'
-    os.environ['MASTER_PORT'] = '12355'
-    # nccl is a communication backend that is used for multi-GPU training
-    init_process_group("nccl", rank=rank, world_size=world_size)
+    init_process_group(backend="nccl")
 
 
 class Trainer:
@@ -53,18 +41,36 @@ class Trainer:
             val_data: DataLoader,
             optimizer: torch.optim.Optimizer,
             criterion: torch.nn.Module,
-            gpu_id: int,
-            save_every: int) -> None:
-        self.gpu_id = gpu_id
+            save_every: int,
+            snapshot_path: str) -> None:
+        self.gpu_id = int(os.environ["LOCAL_RANK"])
         self.model = model.to(self.gpu_id)
         self.optimizer = optimizer
         self.criterion = criterion
         self.train_data = train_data,
         self.val_data = val_data,
         self.save_every = save_every
-
+        self.epochs_run = 0
+        if os.path.exists(snapshot_path):
+            print(f"Loading snapshot from {snapshot_path}")
+            self._load_snapshot(snapshot_path)
         # Wrap the model with DDP
         self.model = DDP(self.model, device_ids=[self.gpu_id])
+
+    def _load_snapshot(self, snapshot_path):
+        snapshot = torch.load(snapshot_path)
+        self.model.load_state_dict(snapshot)["MODEL_STATE"]
+        self.epochs_run = snapshot["EPOCHS_RUN"]
+        print(
+            f"Loaded snapshot from {snapshot_path} from epoch {self.epochs_run}")
+
+    def _save_snapshot(self, epoch):
+        snapshot = {}
+        snapshot["MODEL_STATE"] = self.model.module.state_dict()
+        snapshot["EPOCHS_RUN"] = epoch
+        snapshots_path = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")
+        torch.save(snapshot, snapshots_path)
+        print(f"Saved snapshot for epoch {epoch}")
 
     def _run_batch(self, source, targets):
         self.optimizer.zero_grad()
@@ -78,6 +84,7 @@ class Trainer:
         b_sz = self.train_data[0].batch_size
         print(
             f"[GPU {self.gpu_id}] Epoch {epoch} | Batch Size {b_sz} | Steps {len(self.train_data[0])}")
+        # .sampler is the DistributedSampler for shuffling the data
         self.train_data[0].sampler.set_epoch(epoch)
         for source, targets in self.train_data[0]:
             self._run_batch(source.to(self.gpu_id), targets.to(self.gpu_id))
@@ -98,7 +105,7 @@ class Trainer:
         print(f"Saved checkpoint for epoch {epoch}")
 
     def train(self, max_epochs: int):
-        for epoch in range(max_epochs):
+        for epoch in range(self.epochs_run, max_epochs):
             self._run_epoch(epoch)
 
             # Save only from master process since all other nodes will have the same model
@@ -134,12 +141,12 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
     )
 
 
-def main(rank: int, worldsize: int, total_epochs, save_every):
-    ddp_setup(rank, worldsize)
+def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")):
+    ddp_setup()
     dataset, model, optimizer, criterion = load_train_objs()
     train_data = prepare_dataloader(dataset, 32)
     trainer = Trainer(model, train_data, None, optimizer,
-                      criterion, rank, save_every)
+                      criterion, save_every, snapshot_path)
     trainer.train(total_epochs)
     destroy_process_group()
 
@@ -148,6 +155,4 @@ if __name__ == "__main__":
     import sys
     total_epochs = int(sys.argv[1])
     save_every = int(sys.argv[2])
-    world_size = torch.cuda.device_count()  # Shorthand for cuda:0
-    mp.spawn(main, args=(world_size, total_epochs, save_every),
-             nprocs=world_size)
+    main(total_epochs, save_every)
