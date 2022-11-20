@@ -119,7 +119,8 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         inputs, labels = data
 
         # Move the data to the device
-        inputs, labels = inputs.to(DEVICE), labels.to(DEVICE)
+        inputs, labels = inputs.to(DEVICE, non_blocking=True), labels.to(
+            DEVICE, non_blocking=True)
 
         # Zero the parameter gradients for every batch
         optimizer.zero_grad()
@@ -163,6 +164,7 @@ def train(data_loader, loss_fn, optimizer):
     print("Training finished")
 
 
+@torch.no_grad()
 def test(data_loader, loss_fn):
     """
     Test the model
