@@ -58,7 +58,7 @@ print("-------------------")
 
 # Create a tensorboard writer
 writer = SummaryWriter("runs/" + MODEL_ARCHITECTURE +
-                       _ + timestamp + "_" + sysinfo.name)
+                       "_" + timestamp + "_" + sysinfo.name)
 
 # Will help with underflowing gradients
 # float16 is used to reduce memory usage

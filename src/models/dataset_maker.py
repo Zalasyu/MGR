@@ -16,8 +16,9 @@ class GtzanDataset(Dataset):
 
     Advanced version uses multiprocessing to speed up ETL process
     """
+    DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    def __init__(self, annotations_file, genres_dir, device):
+    def __init__(self, annotations_file, genres_dir, device=DEVICE):
         """
         Constructor method to create blank training data list
         and genre dictionary.
