@@ -22,9 +22,6 @@ class GtzanDataset(Dataset):
         Constructor method to create blank training data list
         and genre dictionary.
         """
-        self.device = torch.device(
-            f"cuda:{}" if torch.cuda.is_available() else "cpu")
-
         self.genres_dir = genres_dir
         self.annotations = pd.read_csv(annotations_file)
 
