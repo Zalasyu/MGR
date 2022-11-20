@@ -147,6 +147,8 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
 
 
 def train(data_loader, loss_fn, optimizer):
+    torch.backends.cudnn.benchmark = True
+
     for i in range(EPOCHS):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
