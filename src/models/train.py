@@ -84,8 +84,8 @@ def train_one_epoch_medium(data_loader, loss_fn, optimizer):
     for i, (features, target) in enumerate(data_loader):
 
         # Non=blocking and overlapping
-        features = features.to('cudo:0', non_blocking=True)
-        target = target.to('cudo:0', non_blocking=True)
+        features = features.to('cuda:0', non_blocking=True)
+        target = target.to('cuda:0', non_blocking=True)
 
         with torch.cuda.amp.autocast():
             output = MODEL(features)
