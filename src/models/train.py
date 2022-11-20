@@ -40,11 +40,11 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
-BATCH_SIZE = 15
-EPOCHS = 75  # Number of times to iterate over the dataset
+BATCH_SIZE = 64
+EPOCHS = 40  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
-LEARNING_RATE = 0.0001
+LEARNING_RATE = 0.0002
 
 # Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
@@ -53,7 +53,7 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
 print("Creating model...")
 # Construct the model
-MODEL = VGG().to(DEVICE)
+MODEL = VGG(VGG_type="VGG19").to(DEVICE)
 print("Model created")
 print(MODEL)
 print("-------------------")

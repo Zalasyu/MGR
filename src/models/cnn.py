@@ -23,11 +23,11 @@ class VGG(nn.Module):
     Then flatten and 4096*4096*4096 Linear layers
     """
 
-    def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584):
+    def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584, VGG_type="VGG16"):
         super(VGG, self).__init__()
         self.in_channels = in_channels
-        self.conv_layers = self.create_conv_layers(VGG_types["VGG16"])
-        self.name_of_model = "VGG16"
+        self.conv_layers = self.create_conv_layers(VGG_types[VGG_type])
+        self.name_of_model = VGG_type
 
         self.height_out_after_conv = img_height // 2**5
         self.width_out_after_conv = img_width // 2**5
