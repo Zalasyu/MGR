@@ -75,10 +75,11 @@ class Trainer:
 
     def _run_epoch(self, epoch):
         # Get  Batch Size from dataloader
-        b_sz = len(next(iter(self.train_data))[0])
+        b_sz = self.train_data[0].batch_size
         print(
             f"[GPU {self.gpu_id}] Epoch {epoch} | Batch Size {b_sz} | Steps {len(self.train_data)}")
-        for i, (source, targets) in enumerate(self.train_data):
+        self.train_data.sampler.set_epoch(epoch)
+        for source, targets in self.train_data:
             self._run_batch(source.to(self.gpu_id), targets.to(self.gpu_id))
 
     def _save_checkpoint(self, epoch):
