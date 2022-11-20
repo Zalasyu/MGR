@@ -282,10 +282,10 @@ if __name__ == "__main__":
     print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=False)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     test_data_loader = DataLoader(
         test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
