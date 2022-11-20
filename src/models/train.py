@@ -25,15 +25,12 @@ from torch.distributed import init_process_group, destroy_process_group
 
 
 # Get Time Stamp
-timestamp = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
+timestamp = datetime.datetime.now().strftime("%m, %d, %Y-%H:%M")
 
 # Get the system information
 sysinfo = torch.cuda.get_device_properties(
     0) if torch.cuda.is_available() else "CPU"
 
-
-# Create a tensorboard writer
-writer = SummaryWriter("runs/" + timestamp + "_" + sysinfo.name)
 
 # Device
 DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -58,6 +55,10 @@ MODEL_ARCHITECTURE = str(MODEL.get_model_name())
 print("Model created")
 print(MODEL)
 print("-------------------")
+
+# Create a tensorboard writer
+writer = SummaryWriter("runs/" + MODEL_ARCHITECTURE +
+                       _ + timestamp + "_" + sysinfo.name)
 
 # Will help with underflowing gradients
 # float16 is used to reduce memory usage
