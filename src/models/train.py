@@ -92,7 +92,7 @@ def train_one_epoch_medium(data_loader, loss_fn, optimizer):
             loss = loss_fn(output, target)
 
         scaler.scale(loss).backward()
-        running_loss += loss.item()
+        running_loss += loss
         print(f"Batch {i+1} loss: {loss}")
         if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
             scaler.step(optimizer)
