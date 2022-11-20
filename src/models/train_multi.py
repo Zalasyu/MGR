@@ -9,6 +9,7 @@ import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import datetime
 import math
+from tqdm import tqdm
 
 # Multi-GPU support
 import torch.multiprocessing as mp
@@ -51,6 +52,7 @@ class Trainer:
         output = self.model(source)
         loss = self.criterion(output, targets)
         loss.backward()
+        print(f"Loss: {loss}")
         self.optimizer.step()
 
     def _run_epoch(self, epoch):
@@ -76,7 +78,7 @@ class Trainer:
         print(f"Saved checkpoint for epoch {epoch}")
 
     def train(self, max_epochs: int):
-        for epoch in range(max_epochs):
+        for epoch in tqdm(range(max_epochs)):
             self._run_epoch(epoch)
             if epoch % self.save_every == 0:
                 self._save_checkpoint(epoch)
