@@ -70,7 +70,7 @@ def kaiming_init():
         print(f"Name: {name}")
         if name.endswith(".bias"):
             param.data.fill_(0)
-        elif name.startswith("layer.0"):
+        elif name.startswith("layers.0"):
             param.data.normal_(0, 1 / math.sqrt(param.shape[1]))
         else:
             param.data.normal_(0, math.sqrt(2) / math.sqrt(param.shape[1]))
