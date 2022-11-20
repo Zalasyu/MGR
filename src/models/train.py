@@ -44,7 +44,7 @@ BATCH_SIZE = 32
 EPOCHS = 40  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0005
 
 # Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
