@@ -1,4 +1,4 @@
-from cnn import VGG
+from .cnn import VGG
 import torch
 import torchaudio
 

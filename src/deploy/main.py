@@ -1,6 +1,8 @@
 from flask import Flask, jsonify, request
 
-from .models.inference import Oracle
+# import Oracle from src.models.inference
+from src.models.inference import Oracle
+
 
 # Create the application instance
 app = Flask(__name__)

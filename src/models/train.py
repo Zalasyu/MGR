@@ -20,6 +20,7 @@ from torch.distributed import init_process_group, destroy_process_group
 # TODO: Implement metrics
 # TODO: Implement a way to dynamically create initial weights for model
 # TODO: Implement Cross Validation
+# TODO: Implement EARLY STOPPING
 
 
 # Get Time Stamp
@@ -38,11 +39,11 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
-BATCH_SIZE = 32
+BATCH_SIZE = 15
 EPOCHS = 100  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
-LEARNING_RATE = 0.001
+LEARNING_RATE = 0.0004
 
 # Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
@@ -55,6 +56,17 @@ MODEL = VGG().to(DEVICE)
 print("Model created")
 print(MODEL)
 print("-------------------")
+
+
+def equal_var_init(fill=0.0):
+    """
+    Initialize the weights of the model with a constant value
+
+    Args:
+        fill (float, optional): _description_. Defaults to 0.0.
+    """
+    for name, param in MODEL.named_parameters():
+        param.data.fill_(fill)
 
 
 def train_one_epoch(data_loader, loss_fn, optimizer):
@@ -105,21 +117,41 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     return last_loss
 
 
-def train(data_loader, loss_fn, optimizer):
+def train(tloader, vloader, loss_fn, optimizer):
+    epoch_num = 0
+    best_vloss = 1_000_000.0
+
     for i in range(EPOCHS):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        last_loss = train_one_epoch(data_loader, loss_fn, optimizer)
+        avg_loss = train_one_epoch(tloader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         MODEL.train(False)
-        tb_x = i * len(data_loader) + i + 1
-        writer.add_scalar("Loss/train", last_loss, tb_x)
-        t1 = time.perf_counter()
-        print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
-        print(" ------------------- ")
-    writer.flush()
+
+        running_vloss = 0.0
+        for i, vdata in enumerate(vloader):
+            vinputs, vlabels = vdata
+            voutputs = MODEL(vinputs)
+            vloss = loss_fn(voutputs, vlabels)
+            running_vloss += vloss
+
+        avg_vloss = running_vloss / (i + 1)
+        print(f"LOSS train: {avg_loss} validation: {avg_vloss}")
+
+        # Log the loss to tensorboard
+        writer.add_scalars("Train/Validation Loss",
+                           {"train": avg_loss, "validation": avg_vloss}, epoch_num + 1)
+        writer.flush()
+
+        # Track best performance ( Early Stopping )
+        if avg_vloss < best_vloss:
+            best_vloss = avg_vloss
+            print("Saving best model")
+            torch.save(MODEL.state_dict(), "best_model.pt")
+
+        epoch_num += 1
 
     print("Training finished")
 
@@ -240,13 +272,13 @@ if __name__ == "__main__":
     print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, drop_last=False)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     test_data_loader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, shuffle=False)
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
 
     print("Data loaders created")
     print("-------------------")
@@ -272,7 +304,7 @@ if __name__ == "__main__":
     t_start = time.perf_counter()
 
     # train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
-    train(training_data_loader, loss_fn, optimizer)
+    train(training_data_loader, val_data_loader loss_fn, optimizer)
 
     t_end = time.perf_counter()
     print(f"Training took {t_end - t_start} seconds")
@@ -294,10 +326,10 @@ if __name__ == "__main__":
     print(f"path: {path}")
 
     # Get path to MGR/src/results directory
-    model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pth"
-    model_path = os.path.join(path, model_filename)
+    #model_filename = f"{model_class_name}_{timestamp}_{sysinfo.name}.pth"
+    #model_path = os.path.join(path, model_filename)
 
-    torch.save(MODEL.state_dict(), model_path)
-    print("Saved best model")
-    print(f"Model saved to {model_path}")
-    print("-------------------")
+    #torch.save(MODEL.state_dict(), model_path)
+    #print("Saved best model")
+    #print(f"Model saved to {model_path}")
+    # print("-------------------")
