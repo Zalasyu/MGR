@@ -67,7 +67,7 @@ class Trainer:
         model_name = self.model.get_model_name()
 
         # Get path to MGR/src/results directory
-        model_filename = f"{model_name}_{TIMESTAMP}_{self.gpu_id}.pth"
+        model_filename = f"{model_name}_{TIMESTAMP}_Epoch{epoch}.pth"
         model_path = os.path.join(
             os.getcwd(),
             "saved_models",
