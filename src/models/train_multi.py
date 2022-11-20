@@ -26,7 +26,7 @@ GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 TIMESTAMP = datetime.datetime.now().strftime("%m-%d-%Y--%H:%M")
 
 
-WRITER = SummaryWriter()
+# WRITER = SummaryWriter()
 
 
 def ddp_setup(rank, world_size):
@@ -98,7 +98,7 @@ class Trainer:
         print(f"Saved checkpoint for epoch {epoch}")
 
     def train(self, max_epochs: int):
-        for epoch in tqdm(range(max_epochs)):
+        for epoch in range(max_epochs):
             self._run_epoch(epoch)
 
             # Save only from master process since all other nodes will have the same model
