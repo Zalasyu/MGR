@@ -92,7 +92,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         # Gather data for reporting
         # Use .item() to get the value of the tensor save  GPU memory
         running_loss += loss.item()
-        # print(f"Batch {i+1} loss: {loss.item()}")
+        print(f"Batch {i+1} loss: {loss.item()}")
         if i % BATCH_SIZE == BATCH_SIZE - 1:
             last_loss = running_loss / BATCH_SIZE
             print(f"Batch {i+1} loss: {last_loss}")
@@ -114,7 +114,7 @@ def train(data_loader, loss_fn, optimizer):
 
         # We do not need gradients on to do reporting
         MODEL.train(False)
-        tb_x = i * len(data_loader.dataset) + i + 1
+        tb_x = i * len(data_loader) + i + 1
         writer.add_scalar("Loss/train", last_loss, tb_x)
         t1 = time.perf_counter()
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")

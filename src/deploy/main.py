@@ -1,6 +1,6 @@
 from flask import Flask, jsonify, request
 
-from src.models.inference import Oracle
+from .models.inference import Oracle
 
 # Create the application instance
 app = Flask(__name__)
@@ -32,11 +32,10 @@ def predict():
 
         try:
             waveform = audio_file.read()
-            TheOracle = Oracle()
+            TheOracle = n.Oracle()
             predictions = TheOracle.get_predictions(waveform)
             data = {"Confidence Interval": predictions}
+            return jsonify(data)
 
         except:
             return jsonify({"error": "File could not be read."})
-
-        return jsonify(predictions)
