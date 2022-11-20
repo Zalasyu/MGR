@@ -44,7 +44,7 @@ BATCH_SIZE = 32
 EPOCHS = 40  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
-LEARNING_RATE = 0.0002
+LEARNING_RATE = 0.001
 
 # Data Spliting COnfiguration
 VALIDATION_PERCENTAGE = 0.2
@@ -140,7 +140,6 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
             optimizer.step()
             avg_loss = running_loss / BATCH_SIZE
-            optimizer.zero_grad(set_to_none=True)
 
     return avg_loss
 
