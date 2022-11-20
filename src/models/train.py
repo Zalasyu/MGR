@@ -113,7 +113,6 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     """
     running_loss = 0.0
     last_loss = 0.0
-    optimizer.zero_grad()
     for i, data in enumerate(data_loader):
         # Every data instance is a input and a label
         inputs, labels = data
@@ -123,7 +122,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
             DEVICE, non_blocking=True)
 
         # Zero the parameter gradients for every batch
-        optimizer.zero_grad()
+        optimizer.zero_grad(set_to_none=True)
 
         # Make a predictions for this batch
         outputs = MODEL(inputs)
@@ -141,7 +140,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
             optimizer.step()
             avg_loss = running_loss / BATCH_SIZE
-            optimizer.zero_grad()
+            optimizer.zero_grad(set_to_none=True)
 
     return avg_loss
 
@@ -261,6 +260,8 @@ if __name__ == "__main__":
 
     # Free GPU cache
     # print(torch.cuda.memory_summary())
+    # For good practice setup the random seed (Reproducibility)
+    torch.manual_seed(0)
 
     # Load the data
     print("Loading data...")
