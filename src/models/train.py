@@ -59,6 +59,12 @@ print("Model created")
 print(MODEL)
 print("-------------------")
 
+# Will help with underflowing gradients
+# float16 is used to reduce memory usage
+# but often doesn't take into account extremely small variations
+# We need to scale our gradients so they don't get flushed to zero
+SCALER = torch.cuda.amp.GradScaler()
+
 
 def kaiming_init():
     """
@@ -123,23 +129,26 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
             DEVICE, non_blocking=True)
 
         # Zero the parameter gradients for every batch
-        optimizer.zero_grad(set_to_none=True)
+        optimizer.zero_grad()
 
         # Make a predictions for this batch
         outputs = MODEL(inputs)
 
         # Calculate the loss and backpropagate
         loss = loss_fn(outputs, labels)
-        loss.backward()
 
-        # Update the weights (Learning)
+        # Scale Gradients
+        SCALER.scale(loss).backward()
+
+        # Update Weights with optimizer
+        SCALER.step(optimizer)
+        SCALER.update()
 
         # Gather data for reporting
         # Use .item() to get the value of the tensor save  GPU memory
         running_loss += loss.item()
         print(f"Batch {i+1} loss: {loss.item()}")
         if (i + 1) % 2 == 0 or (i + 1) == len(data_loader):
-            optimizer.step()
             avg_loss = running_loss / BATCH_SIZE
 
     return avg_loss
