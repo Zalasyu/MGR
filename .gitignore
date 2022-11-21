@@ -3,6 +3,13 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+# Venv
+mgr_venv/
+
+# For testing
+z.py
+z2.py
+
 # C extensions
 *.so
 
@@ -11,6 +18,7 @@ __pycache__/
 
 # Training data
 data/external/
+data/interim
 data/interim/*.wav
 data/interim/*.png
 data/processed/*.npy
