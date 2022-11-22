@@ -45,11 +45,11 @@ class VGG(nn.Module):
         self.max_pool_count = self._get_number_of_max_pools(
             VGG_types[VGG_type])
 
-        self.height_out_after_conv = img_height // 2**4
-        self.width_out_after_conv = img_width // 2**4
+        self.height_out_after_conv = img_height // 2**self.max_pool_count
+        self.width_out_after_conv = img_width // 2**self.max_pool_count
 
         self.fcs = nn.Sequential(
-            nn.Linear(512*7*7, 4096),
+            nn.Linear(512*7 * 7, 4096),
             nn.ReLU(),
             # Dropout Layer (This is a regularization technique)
             nn.Dropout(p=0.5),
@@ -71,7 +71,7 @@ class VGG(nn.Module):
         x = self.conv_layers(x)
 
         # Flatten the output of the convolutional layers
-        x = nn.Flatten()(x)
+        x = x.reshape(x.shape[0], -1)
 
         # Pass the flattened output to the fully connected layers
         x = self.fcs(x)
