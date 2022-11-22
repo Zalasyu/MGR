@@ -29,8 +29,11 @@ class VGG(nn.Module):
         self.conv_layers = self.create_conv_layers(VGG_types[VGG_type])
         self.name_of_model = VGG_type
 
-        self.height_out_after_conv = img_height // 2**5
-        self.width_out_after_conv = img_width // 2**5
+        self.max_pool_count = self._get_number_of_max_pools(
+            VGG_types[VGG_type])
+
+        self.height_out_after_conv = img_height // 2**self.max_pool_count
+        self.width_out_after_conv = img_width // 2**self.max_pool_count
 
         self.fcs = nn.Sequential(
             nn.Linear(512*self.height_out_after_conv *
@@ -46,6 +49,9 @@ class VGG(nn.Module):
 
     def get_model_name(self):
         return self.name_of_model
+
+    def _get_number_of_max_pools(self, architecture):
+        return architecture.count('M')
 
     def forward(self, x):
 
