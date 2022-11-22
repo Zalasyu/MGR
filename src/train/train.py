@@ -248,7 +248,7 @@ if __name__ == "__main__":
     # Load the data
     print("Loading data...")
     gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                         genres_dir=GENRES_DIR_CLOUD, device=DEVICE)
+                         genres_dir=GENRES_DIR_CLOUD)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
@@ -266,13 +266,13 @@ if __name__ == "__main__":
     print("Creating data loaders...")
     # Create a dataloader for the training, testing, and validation sets
     training_data_loader = DataLoader(
-        train_dataset, batch_size=BATCH_SIZE, shuffle=True)
+        train_dataset, batch_size=BATCH_SIZE, shuffle=True, pin_memory=True)
 
     val_data_loader = DataLoader(
-        val_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
+        val_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
     test_data_loader = DataLoader(
-        test_dataset, batch_size=BATCH_SIZE, shuffle=False, drop_last=False)
+        test_dataset, batch_size=BATCH_SIZE, shuffle=False, pin_memory=True)
 
     print("Data loaders created")
     print("-------------------")
