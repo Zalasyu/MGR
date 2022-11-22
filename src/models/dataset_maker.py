@@ -87,7 +87,7 @@ class GtzanDataset(Dataset):
         """
         audio_file_path = self._get_audio_file_path(idx)
         label = self._get_audio_label(idx)
-        signal, sr = torchaudio.load(audio_file_path)
+        signal, sr = torchaudio.load(audio_file_path)       # Signal is already a tensor at this point
 
         # Load signal to device: CPU or GPU
         signal = signal.to(self.device)
@@ -162,12 +162,8 @@ class GtzanDataset(Dataset):
     def _uniformize_to_mono(self, signal):
         """
         Uniformizes the signal to mono
-
-        Args:
-            signal (Tensor): audio signal
-
-        Returns:
-            signal (Tensor): audio signal
+        Args: signal (Tensor)= audio signal
+        Returns: signal (Tensor): audio signal
         """
         # If the signal is stereo, convert it to mono
         if signal.shape[0] > 1:
@@ -200,8 +196,8 @@ class GtzanDataset(Dataset):
 
 
 if __name__ == "__main__":
-    ANNOTATIONS_FILE = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
-    GENRES_DIR = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+    ANNOTATIONS_FILE = "Data/features_30_sec.csv"
+    GENRES_DIR = "data/interim/wav"
 
     if torch.cuda.is_available():
         device = "cuda"

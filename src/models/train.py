@@ -140,11 +140,11 @@ def plot_melspecgrams(data_loader: DataLoader):
 
 if __name__ == "__main__":
 
-    ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
-    GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+    ANNOTATIONS_FILE_LOCAL = "data/features_30_sec.csv"
+    GENRES_DIR_LOCAL =  "data/interim/wav"
 
-    ANNOTATIONS_FILE_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/features_30_sec.csv"
-    GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
+    #ANNOTATIONS_FILE_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/features_30_sec.csv"
+    #GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 
     if torch.cuda.is_available():
         device = torch.device("cuda")
