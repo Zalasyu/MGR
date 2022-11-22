@@ -49,7 +49,7 @@ class MusicTrainingData(Dataset):
         # Return array of tensors in format: [[signal(tensor), label(int)], [...], ...]
         return self.training_data
 
-        
+
 
 
 if __name__ == "__main__":

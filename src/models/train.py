@@ -85,15 +85,17 @@ def train_one_epoch(model, data_loader, loss_fn, optimizer, device):
 
     for inputs, targets in data_loader:
         inputs, targets = inputs.to(device), targets.to(device)
+        print("Input: ", len(inputs), inputs)
+        print("Target: ", len(targets), targets)
 
         # 1. Calculate loss
         predictions = model(inputs)
         loss = loss_fn(predictions, targets)
 
         # 2. Backpropagation
-        optimizer.zero_grad()  # At each batch we reset the gradients to zero
-        loss.backward()  # Calculate the gradients (backpropagation)
-        optimizer.step()  # Update the weights
+        optimizer.zero_grad()  # When training, each batch we reset the gradients to zero
+        loss.backward()        # Calculate the gradients (backpropagation)
+        optimizer.step()       # Update the weights (Actual optimization step)
 
     # 3. Calculate accuracy
     accuracy = calculate_accuracy(model, data_loader, device)
@@ -184,6 +186,7 @@ if __name__ == "__main__":
 
     test_data_loader = DataLoader(
         test_dataset, batch_size=BATCH_SIZE)
+
 
     print("Data loader created")
     print("-------------------")
