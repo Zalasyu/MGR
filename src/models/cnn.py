@@ -49,8 +49,7 @@ class VGG(nn.Module):
         self.width_out_after_conv = img_width // 2**4
 
         self.fcs = nn.Sequential(
-            nn.Linear(512*self.height_out_after_conv *
-                      self.width_out_after_conv, 4096),
+            nn.Linear(512*7*7, 4096),
             nn.ReLU(),
             # Dropout Layer (This is a regularization technique)
             nn.Dropout(p=0.5),
