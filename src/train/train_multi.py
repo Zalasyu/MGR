@@ -2,8 +2,8 @@ import os
 import torch
 from torch import nn
 from torch.utils.data import DataLoader, Dataset
-from dataset_maker import GtzanDataset
-from cnn import VGG
+from src.data.dataset_maker import GtzanDataset
+from src.models.cnn import VGG
 import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
