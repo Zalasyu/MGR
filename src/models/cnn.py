@@ -1,5 +1,9 @@
 from torch import nn
+import torch
 from torchsummary import summary
+from src.data.dataset_maker import GtzanDataset
+
+
 VGG_types = {
     "VGG16": [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
     "VGG19": [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
@@ -12,18 +16,27 @@ VGG_types = {
 # TODO: Implement a way to choose the activation function
 class VGG(nn.Module):
     """
-    VGG16 architecture
-    It has 16 weight layers
-    Uses 3x3 kernels
-    Padding of 1
-    Stride of 1
-    The number of features (Image resolution) always stays the same with VGG!
-    VGG16 = [64, 64, 'M', 128, 128, 'M', 256, 256, 256,
-        'M', 512, 512, 512, 'M', 512, 512, 512, 'M']
-    Then flatten and 4096*4096*4096 Linear layers
+    A Dynamic VGG model that can be used to create any VGG model
+    You can make a VGG11, VGG13, VGG16, VGG19
+    VGG11: 11 layers
+    VGG13: 13 layers
+    VGG16: 16 layers
+    VGG19: 19 layers
+
+
     """
 
-    def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584, VGG_type="VGG16"):
+    def __init__(self, in_channels=1, num_classes=10, img_height=128, img_width=2584, VGG_type="VGG16"):
+        """
+        Initialize the VGG model
+
+        Args:
+            in_channels (int, optional): Number of input channels. Defaults to 1.
+            num_classes (int, optional): _description_. Defaults to 10.
+            img_height (int, optional): _description_. Defaults to 64.
+            img_width (int, optional): _description_. Defaults to 2584.
+            VGG_type (str, optional): _description_. Defaults to "VGG16".
+        """
         super(VGG, self).__init__()
         self.in_channels = in_channels
         self.conv_layers = self.create_conv_layers(VGG_types[VGG_type])
@@ -123,3 +136,22 @@ class ZFNet(nn.Module):
 
     def __init__(self):
         super().__init__()
+
+
+if __name__ == """__main__""":
+    ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
+    GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = VGG(VGG_type="VGG16").to(device)
+    print(model)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
+                         genres_dir=GENRES_DIR_LOCAL)
+
+    train_dataloader = torch.utils.data.DataLoader(
+        gtzan, batch_size=1, shuffle=True)
+
+    # Get one batch of data
+    input_tensor = next(iter(train_dataloader))[0].to(device)
+    print(input_tensor.shape)
+
+    summary(model, input_size=(1, 64, 2584))

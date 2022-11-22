@@ -37,7 +37,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
-BATCH_SIZE = 32
+BATCH_SIZE = 1
 EPOCHS = 40  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
@@ -50,7 +50,7 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
 print("Creating model...")
 # Construct the model
-MODEL = VGG(VGG_type="VGG16").to(DEVICE)
+MODEL = VGG(VGG_type="VGG16", in_channels=1).to(DEVICE)
 MODEL_ARCHITECTURE = str(MODEL.get_model_name())
 print("Model created")
 print(MODEL)
@@ -106,6 +106,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         optimizer.zero_grad()
 
         # Make a predictions for this batch
+        print(f"Input shape: {inputs.shape}")
         outputs = MODEL(inputs)
 
         # Calculate the loss and backpropagate
@@ -247,8 +248,8 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                         genres_dir=GENRES_DIR_CLOUD)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
+                         genres_dir=GENRES_DIR_LOCAL)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
