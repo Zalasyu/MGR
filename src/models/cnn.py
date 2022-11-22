@@ -53,7 +53,7 @@ class VGG(nn.Module):
         x = self.conv_layers(x)
 
         # Flatten the output of the convolutional layers
-        x = x.reshape(x.shape[0], -1)
+        x = nn.Flatten()(x)
 
         # Pass the flattened output to the fully connected layers
         x = self.fcs(x)
