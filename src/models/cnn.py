@@ -5,10 +5,10 @@ from src.data.dataset_maker import GtzanDataset
 
 
 VGG_types = {
+    "VGG11": [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
+    "VGG13": [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
     "VGG16": [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 'M', 512, 512, 512, 'M', 512, 512, 512, 'M'],
     "VGG19": [64, 64, 'M', 128, 128, 'M', 256, 256, 256, 256, 'M', 512, 512, 512, 512, 'M', 512, 512, 512, 512, 'M'],
-    "VGG11": [64, 'M', 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M'],
-    "VGG13": [64, 64, 'M', 128, 128, 'M', 256, 256, 'M', 512, 512, 'M', 512, 512, 'M']
 }
 
 
@@ -26,16 +26,16 @@ class VGG(nn.Module):
 
     """
 
-    def __init__(self, in_channels=1, num_classes=10, img_height=128, img_width=2584, VGG_type="VGG16"):
+    def __init__(self, in_channels=1, num_classes=10, img_height=64, img_width=2584, VGG_type="VGG16"):
         """
         Initialize the VGG model
 
         Args:
-            in_channels (int, optional): Number of input channels. Defaults to 1.
-            num_classes (int, optional): _description_. Defaults to 10.
-            img_height (int, optional): _description_. Defaults to 64.
-            img_width (int, optional): _description_. Defaults to 2584.
-            VGG_type (str, optional): _description_. Defaults to "VGG16".
+            in_channels (int, optional): Number of input channels. If image is RGB, then in_channels=3. Defaults to 1.
+            num_classes (int, optional): Number of classes to classify input with. Defaults to 10.
+            img_height (int, optional): Image height. Defaults to 64.
+            img_width (int, optional): Image Width. Defaults to 2584.
+            VGG_type (str, optional): The Type of VGG. Defaults to "VGG16".
         """
         super(VGG, self).__init__()
         self.in_channels = in_channels
@@ -45,8 +45,8 @@ class VGG(nn.Module):
         self.max_pool_count = self._get_number_of_max_pools(
             VGG_types[VGG_type])
 
-        self.height_out_after_conv = img_height // 2**self.max_pool_count
-        self.width_out_after_conv = img_width // 2**self.max_pool_count
+        self.height_out_after_conv = img_height // 2**4
+        self.width_out_after_conv = img_width // 2**4
 
         self.fcs = nn.Sequential(
             nn.Linear(512*self.height_out_after_conv *

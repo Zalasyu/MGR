@@ -50,7 +50,7 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
 print("Creating model...")
 # Construct the model
-MODEL = VGG(VGG_type="VGG16", in_channels=1).to(DEVICE)
+MODEL = VGG(VGG_type="VGG11").to(DEVICE)
 MODEL_ARCHITECTURE = str(MODEL.get_model_name())
 print("Model created")
 print(MODEL)
