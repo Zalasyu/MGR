@@ -78,6 +78,39 @@ def kaiming_init():
             param.data.normal_(0, math.sqrt(2) / math.sqrt(param.shape[1]))
 
 
+def overfit_batch(data_loader, loss_fn, optimizer):
+    """
+    Overfit a single batch of data
+
+    Args:
+        data_loader (DataLoader): The data loader to use
+        loss_fn (nn.Module): The loss function to use
+        optimizer (torch.optim): The optimizer to use
+    """
+    dataiter = iter(data_loader)
+    images, labels = dataiter.next()
+
+    for i in range(100):
+        # Forward pass
+        y_pred = MODEL(images)
+        loss = loss_fn(y_pred, labels)
+
+        # Backward pass
+        SCALER.scale(loss).backward()
+        SCALER.step(optimizer)
+        SCALER.update()
+
+        # Zero out the gradients
+        optimizer.zero_grad()
+
+        # Report
+        print(f"L: {loss.item():.4f}")
+        if i % BATCH_SIZE == 0:
+            print(f"Batch {i}, Loss: {loss.item():.4f}")
+            writer.add_scalar("Loss/Train", loss.item(), i)
+            writer.flush()
+
+
 def train_one_epoch(data_loader, loss_fn, optimizer):
     """
     Train the model for one epoch
@@ -284,12 +317,15 @@ if __name__ == "__main__":
     for param_tensor in MODEL.state_dict():
         print(param_tensor, "\t", MODEL.state_dict()[param_tensor].size())
 
+    # (SANITY CHECK) OVERFIT ONE BATCH
+    overfit_batch(training_data_loader, loss_fn, optimizer)
+
     print("Training model...")
     # Train the model
     t_start = time.perf_counter()
 
     # train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
-    train(training_data_loader, loss_fn, optimizer)
+    # train(training_data_loader, loss_fn, optimizer)
 
     t_end = time.perf_counter()
     print(f"Training took {t_end - t_start} seconds")

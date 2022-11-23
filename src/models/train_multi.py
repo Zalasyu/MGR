@@ -8,8 +8,6 @@ import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import datetime
-import math
-from tqdm import tqdm
 
 # Multi-GPU support
 import torch.multiprocessing as mp
