@@ -89,6 +89,7 @@ def overfit_batch(data_loader, loss_fn, optimizer):
     """
     dataiter = iter(data_loader)
     images, labels = dataiter.next()
+    images, labels = images.to(DEVICE), labels.to(DEVICE)
 
     for i in range(100):
         # Forward pass
@@ -313,9 +314,6 @@ if __name__ == "__main__":
     # Initialize the model with kaiming initialization
     # kaiming_init()
     # Print model's state_dict
-    print("Model's state_dict:")
-    for param_tensor in MODEL.state_dict():
-        print(param_tensor, "\t", MODEL.state_dict()[param_tensor].size())
 
     # (SANITY CHECK) OVERFIT ONE BATCH
     overfit_batch(training_data_loader, loss_fn, optimizer)
