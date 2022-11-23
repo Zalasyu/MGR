@@ -163,12 +163,15 @@ class Model:
         
         # 1. Load Numpy dataset
         data = self.get_data()
+        print('Data loaded')
 
         # 2. Convert the data from numpy to a Tensor
         dataset, labelset = self.convert_numpy_to_tensor(data)
+        print('Data set to tensors')
 
         # 3. Scale dataset
         # dataset = self.scale_set(dataset)
+        # print('Data scaled')
 
         # 4. Slice a portion of both train dataset and train labelset for training
         val_size = int(len(dataset)*self.validation_percent)    # Get int for slicing dataset
@@ -250,7 +253,9 @@ class Model:
             total = 0     # Tracks total number of elements. Value will differ based on how the testset was split (regardless of batch size)
 
             # Train + test in batches
-            for i in range(0, len(train_x), self.batch_size):
+            for i in (pbar := tqdm(range(0, len(train_x), self.batch_size))):
+                # Set description for progress bar
+                pbar.set_description(f"Epoch {e}")
                 # A. Use slicing to construct train batch
                 train_batch_x = train_x[i:i+self.batch_size]       # Get dataset batch
                 train_batch_x = train_batch_x.view(-1, 1, self.spec_width, self.spec_length)  # Reshape tensor
@@ -425,5 +430,5 @@ class Model:
         """Prints the prediction results using the genre dictionary."""
         for genre in self.genre_dict:
             i = self.genre_dict[genre]
-            print(f'{genre}: {results[i]*100}%')
+            print(f'{genre}: {results[i]*100 : .2f}%')
         return
