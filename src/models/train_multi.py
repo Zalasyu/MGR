@@ -71,6 +71,21 @@ class Trainer:
         torch.save(snapshot, snapshots_path)
         print(f"Saved snapshot for epoch {epoch}")
 
+    def _save_checkpoint(self, epoch):
+        # We need to access module since it was wrapped with DDP
+        checkpoint = self.model.module.state_dict()
+        # Save the model
+        model_name = self.model.module.get_model_name()
+
+        # Get path to MGR/src/results directory
+        model_filename = f"{model_name}_{TIMESTAMP}_Epoch{epoch}.pth"
+        model_path = os.path.join(
+            os.getcwd(),
+            "saved_models",
+            model_filename)
+        torch.save(checkpoint, model_path)
+        print(f"Saved checkpoint for epoch {epoch}")
+
     def _run_batch(self, source, targets):
         self.optimizer.zero_grad()
         output = self.model(source)
@@ -97,21 +112,6 @@ class Trainer:
             WRITER.add_scalar("Loss/Train", loss, epoch)
 
         WRITER.flush()
-
-    def _save_checkpoint(self, epoch):
-        # We need to access module since it was wrapped with DDP
-        checkpoint = self.model.module.state_dict()
-        # Save the model
-        model_name = self.model.module.get_model_name()
-
-        # Get path to MGR/src/results directory
-        model_filename = f"{model_name}_{TIMESTAMP}_Epoch{epoch}.pth"
-        model_path = os.path.join(
-            os.getcwd(),
-            "saved_models",
-            model_filename)
-        torch.save(checkpoint, model_path)
-        print(f"Saved checkpoint for epoch {epoch}")
 
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run, max_epochs):
@@ -196,7 +196,7 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     ddp_setup()
     train_set, val_set, test_set, model, optimizer, criterion = load_train_objs()
     train_data = prepare_dataloader(train_set, 40)
-    val_data = prepare_dataloader(val_set, 100)
+    val_data = prepare_dataloader(val_set, 40)
     test_data = prepare_dataloader(test_set, 40)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
