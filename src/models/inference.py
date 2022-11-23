@@ -1,4 +1,4 @@
-from .cnn import VGG
+from vgg_net import VGG_Net
 import torch
 import torchaudio
 import os
@@ -144,24 +144,22 @@ class Oracle():
         return mapped_class
 
 
+class InputChecker():
+
+
 if __name__ == "__main__":
-    WEIGHTS_FILE_LOCAL = ""
-    WEIGHTS_FILE_CLOUD = ""
-
-    # SPECIFY THE PATH TO THE MODEL WITH THE BEST ACCURACY
-    MODEL_NAME = ""
-
-    model = VGG()
-    # Load the weights with the best validation accuracy
-    state_dict = torch.load(MODEL_PATH)
-    model.load_state_dict(state_dict)
-    # printr("Model loaded")
-
-    miniTransform = TransformInputSong(
+    model = VGG_Net()
+    transformer = TransformInputSong(
         num_samples=NUM_SAMPLES,
         sample_rate=SAMPLE_RATE,
         n_fft=N_FFT,
         hop_length=HOP_LENGTH,
-        n_mels=N_MELS)
+        n_mels=N_MELS
+    )
+    oracle = Oracle()
 
-    # Predict
+    try:
+        # 1. Get input from user
+
+    except Exception as e:
+        print(e)

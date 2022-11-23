@@ -4,8 +4,11 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from dataset_maker import GtzanDataset
 from vgg_net import VGG_Net
-from torch.utils.tensorboard import SummaryWriter
 import datetime
+
+import matplotlib.pyplot as plt
+import numpy as np
+import torch.nn.functional as F
 
 # Multi-GPU support
 import torch.multiprocessing as mp
@@ -13,8 +16,9 @@ from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
 
-# Metrics and logging
-import torchmetrics
+# Tensorboard Support
+from torch.utils.tensorboard import SummaryWriter
+
 
 ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
 GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
@@ -80,6 +84,9 @@ class Trainer:
         return loss.item()
 
     def _run_epoch(self, epoch):
+        # Metrics
+        running_loss = 0.0
+
         # Get  Batch Size from dataloader
         b_sz = self.train_data[0].batch_size
         print(
@@ -90,9 +97,8 @@ class Trainer:
             loss = self._run_batch(
                 source.to(self.gpu_id), targets.to(self.gpu_id))
 
-            # Log loss to tensorboard
-            print(f"[GPU {self.gpu_id}] Loss: {loss}")
-            WRITER.add_scalar("Loss/train", loss, epoch)
+            if self.gpu_id == 0:
+                WRITER.add_scalar("Loss/train", loss, epoch)
 
         WRITER.flush()
 
@@ -128,12 +134,65 @@ class Trainer:
             for source, targets in self.val_data[0]:
                 output = self.model(source.to(self.gpu_id))
                 _, preds = torch.max(output, 1)
-                total_correct += torch.sum(preds == targets.to(self.gpu_id))
+                total_correct += torch.sum(preds == targets.to("cuda:0"))
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
 
         return total_correct / total_items
+
+    def write_images_to_tensorboard(self):
+        for source, targets in self.val_data[0]:
+            output = self.model(source.to(self.gpu_id))
+            _, preds = torch.max(output, 1)
+            for i in range(len(source)):
+                WRITER.add_image(
+                    "Validation Images",
+                    source[i],
+                    targets[i],
+                    dataformats="CHW")
+                WRITER.add_image(
+                    "Validation Images",
+                    source[i],
+                    preds[i],
+                    dataformats="CHW")
+            break
+
+    def inspect_model_with_tensorboard(self):
+        # Add the model to tensorboard
+        sample_data = next(iter(self.val_data[0]))[0]
+        WRITER.add_graph(self.model, sample_data.to(self.gpu_id))
+        WRITER.flush()
+
+    def images_to_probs(self):
+        output = self.model(self.val_data[0])
+        _, preds_tensor = torch.max(output, 1)
+        preds = np.squeeze(preds_tensor.numpy())
+        return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
+
+    def plot_classes_preds(self):
+
+        preds, probs = self.images_to_probs(self.model, self.val_data[0])
+        fig = plt.figure(figsize=(12, 48))
+        for idx in np.arange(4):
+            ax = fig.add_subplot(1, 4, idx+1, xticks=[], yticks=[])
+            self.matplotlib_imshow(
+                self.val_data[0].dataset[idx][0], one_channel=True)
+            ax.set_title(
+                f"{self.val_data[0].dataset.classes[preds[idx]]}, {probs[idx]:1.1f}",
+                color=("green" if preds[idx] == self.val_data[0].dataset[idx][1] else "red"))
+
+        return fig
+
+    def matplotlib_imshow(self, img, one_channel=False):
+        if one_channnel:
+            img = img.mean(dim=0)
+        img = img / 2 + 0.5     # unnormalize
+        npimg = img.numpy()
+        if one_channel:
+            plt.imshow(npimg, cmap="Greys")
+        else:
+            plt.imshow(np.transpose(npimg, (1, 2, 0)))
 
 
 # Load Train Objects
@@ -177,10 +236,16 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     ddp_setup()
     train_set, val_set, test_set, model, optimizer, criterion = load_train_objs()
     train_data = prepare_dataloader(train_set, 40)
-    val_data = prepare_dataloader(val_set, 40)
+    val_data = prepare_dataloader(val_set, 100)
     test_data = prepare_dataloader(test_set, 40)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
+
+    # Inspect the model
+    trainer.inspect_model_with_tensorboard()
+
+    #
+
     trainer.train(total_epochs)
     trainer.validate()
     destroy_process_group()
