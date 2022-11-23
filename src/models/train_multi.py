@@ -132,9 +132,9 @@ class Trainer:
 
         with torch.no_grad():
             for source, targets in self.val_data[0]:
-                output = self.model(source.to(self.gpu_id))
+                output = self.model(source.to("cuda"))
                 _, preds = torch.max(output, 1)
-                total_correct += torch.sum(preds == targets.to("cuda:0"))
+                total_correct += torch.sum(preds == targets.to("cuda"))
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
@@ -188,11 +188,6 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     test_data = prepare_dataloader(test_set, 40)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
-
-    # Inspect the model
-    # trainer.inspect_model_with_tensorboard()
-
-    #
 
     trainer.train(total_epochs)
     trainer.validate()
