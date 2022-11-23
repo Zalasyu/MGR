@@ -2,6 +2,8 @@ import os
 import numpy as np
 from src.data.PrepareInput import PrepareAudio
 import json
+from collections import deque
+from tqdm import tqdm
 
 
 class MusicTrainingData:
@@ -18,7 +20,7 @@ class MusicTrainingData:
         Constructor method to create blank training data list
         and genre dictionary.
         """
-        self.training_data = []
+        self.training_data = deque()
         self.genre_dict = {}
 
     def create_genre_dictionary(self, data_path, output_path):
@@ -53,7 +55,9 @@ class MusicTrainingData:
         # Iterate through all genres
         for genre in self.genre_dict:
             # For each file in a genre
-            for f in os.listdir(os.path.join(data_path, genre)):
+            for f in (pbar := tqdm(os.listdir(os.path.join(data_path, genre)))):
+                # Progress bar description
+                pbar.set_description(f"Processing {genre}")
                 # Use Librosa to create a spectrograph - Midhun's code
                 img = mel_spectrogram.start(os.path.join(data_path, genre, f))
                 # Add image and label to training data
@@ -61,6 +65,7 @@ class MusicTrainingData:
                 self.training_data.append([img, list(label)])
 
         # Shuffle and save dataset to designated output path
+        self.training_data = np.array(self.training_data)
         np.random.shuffle(self.training_data)
         np.save(os.path.join(output_path, 'training_data.npy'), self.training_data)
 
