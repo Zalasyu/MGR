@@ -140,7 +140,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
 
         # Report
         print(f"Batch {batch+1} loss: {loss.item():.4f}")
-        writer.add_scalar("Loss/Train", loss.item(), batch)
+        return loss.item()
 
 
 def train(data_loader, loss_fn, optimizer):
@@ -149,10 +149,12 @@ def train(data_loader, loss_fn, optimizer):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        avg_loss = train_one_epoch(data_loader, loss_fn, optimizer)
+        loss = train_one_epoch(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         t1 = time.perf_counter()
+        avg_loss = loss / len(data_loader)
+
         writer.add_scalar("Loss/Train", avg_loss, i + 1)
         test(data_loader, loss_fn, optimizer)
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
