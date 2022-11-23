@@ -121,6 +121,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         loss_fn (nn.Module): The loss function to use
         optimizer (torch.optim): The optimizer to use
     """
+    running_loss = 0.0
 
     for batch, (X, y) in enumerate(data_loader):
         X = X.to(DEVICE)
@@ -140,7 +141,9 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
 
         # Report
         print(f"Batch {batch+1} loss: {loss.item():.4f}")
-        return loss.item()
+        running_loss += loss.item()
+
+    return running_loss
 
 
 def train(data_loader, loss_fn, optimizer):
@@ -149,11 +152,11 @@ def train(data_loader, loss_fn, optimizer):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        loss = train_one_epoch(data_loader, loss_fn, optimizer)
+        running_loss = train_one_epoch(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         t1 = time.perf_counter()
-        avg_loss = loss / len(data_loader)
+        avg_loss = running_loss / len(data_loader)
 
         writer.add_scalar("Loss/Train", avg_loss, i + 1)
         test(data_loader, loss_fn)
@@ -202,7 +205,7 @@ def test(data_loader, loss_fn):
 
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        writer.add_scalar("Loss/test", running_loss, i)
+        writer.add_scalar("Loss/Test", running_loss, i)
 
     avg_loss = running_loss / (i + 1)
     accuracy = 100.0*correct / total
