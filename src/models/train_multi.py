@@ -160,7 +160,7 @@ class Trainer:
 
     def inspect_model_with_tensorboard(self):
         # Add the model to tensorboard
-        sample_data = next(iter(self.val_data[0]))[0]
+        sample_data = next(iter(self.val_data[0]))
         WRITER.add_graph(self.model, sample_data.to(self.gpu_id))
         WRITER.flush()
 
@@ -185,7 +185,7 @@ class Trainer:
         return fig
 
     def matplotlib_imshow(self, img, one_channel=False):
-        if one_channnel:
+        if one_channel:
             img = img.mean(dim=0)
         img = img / 2 + 0.5     # unnormalize
         npimg = img.numpy()
