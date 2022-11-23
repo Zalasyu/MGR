@@ -156,7 +156,7 @@ def train(data_loader, loss_fn, optimizer):
         avg_loss = loss / len(data_loader)
 
         writer.add_scalar("Loss/Train", avg_loss, i + 1)
-        test(data_loader, loss_fn, optimizer)
+        test(data_loader, loss_fn)
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
         print(" ------------------- ")
     writer.flush()
