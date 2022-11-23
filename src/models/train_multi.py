@@ -128,9 +128,9 @@ class Trainer:
 
         with torch.no_grad():
             for source, targets in self.val_data[0]:
-                output = self.model(source.to(self.gpu_id))
+                output = self.model(source.to(0))
                 _, preds = torch.max(output, 1)
-                total_correct += torch.sum(preds == targets.to("cuda:0"))
+                total_correct += torch.sum(preds == targets.to(0))
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
@@ -153,12 +153,6 @@ class Trainer:
                     preds[i],
                     dataformats="CHW")
             break
-
-    def inspect_model_with_tensorboard(self):
-        # Add the model to tensorboard
-        sample_data = next(iter(self.val_data[0]))[0]
-        WRITER.add_graph(self.model, sample_data.to(self.gpu_id))
-        WRITER.flush()
 
 
 # Load Train Objects
