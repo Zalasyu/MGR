@@ -6,10 +6,6 @@ from dataset_maker import GtzanDataset
 from vgg_net import VGG_Net
 import datetime
 
-import matplotlib.pyplot as plt
-import numpy as np
-import torch.nn.functional as F
-
 # Multi-GPU support
 import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
@@ -97,8 +93,8 @@ class Trainer:
             loss = self._run_batch(
                 source.to(self.gpu_id), targets.to(self.gpu_id))
 
-            if self.gpu_id == 0:
-                WRITER.add_scalar("Loss/train", loss, epoch)
+            # Log loss to tensorboard
+            WRITER.add_scalar("Loss/Train", loss, epoch)
 
         WRITER.flush()
 
@@ -130,24 +126,43 @@ class Trainer:
         total_correct = 0
         total_items = 0
 
-        # Test validation set on one GPU
-        gpu_id = 0
-
         with torch.no_grad():
             for source, targets in self.val_data[0]:
-                output = self.model(source.to(gpu_id))
+                output = self.model(source.to(self.gpu_id))
                 _, preds = torch.max(output, 1)
-                total_correct += torch.sum(preds == targets.to(gpu_id))
+                total_correct += torch.sum(preds == targets.to("cuda:0"))
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
 
         return total_correct / total_items
 
+    def write_images_to_tensorboard(self):
+        for source, targets in self.val_data[0]:
+            output = self.model(source.to(self.gpu_id))
+            _, preds = torch.max(output, 1)
+            for i in range(len(source)):
+                WRITER.add_image(
+                    "Validation Images",
+                    source[i],
+                    targets[i],
+                    dataformats="CHW")
+                WRITER.add_image(
+                    "Validation Images",
+                    source[i],
+                    preds[i],
+                    dataformats="CHW")
+            break
+
+    def inspect_model_with_tensorboard(self):
+        # Add the model to tensorboard
+        sample_data = next(iter(self.val_data[0]))[0]
+        WRITER.add_graph(self.model, sample_data.to(self.gpu_id))
+        WRITER.flush()
+
+
 # Load Train Objects
 # The ingredients for training
-
-
 def load_train_objs():
     VALIDATION_SPLIT = 0.1
     TRAIN_SPLIT = 0.7
@@ -165,7 +180,7 @@ def load_train_objs():
         gtzan, [train_count, val_count, test_count])
     # load YOUR model
     # Types of VGG available: VGG11, VGG13, VGG16, VGG19
-    model = VGG_Net(architecture="VGG19")
+    model = VGG_Net(architecture="VGG16")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss()
     return train_set, val_set, test_set, model, optimizer, criterion
@@ -191,7 +206,6 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     test_data = prepare_dataloader(test_set, 40)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
-
     trainer.train(total_epochs)
     trainer.validate()
     destroy_process_group()
