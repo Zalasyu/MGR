@@ -125,15 +125,19 @@ class Trainer:
 
     def validate(self):
         self.model.eval()
-        self.model.to(0)
         total_correct = 0
         total_items = 0
 
+        # Gradient computation is not needed
         with torch.no_grad():
             for source, targets in self.val_data[0]:
-                output = self.model(source.to(0))
-                _, preds = torch.max(output, 1).to(0)
-                total_correct += torch.sum(preds == targets.to(0))
+                # Send data to GPU
+                source, targets = source.to(
+                    self.gpu_id), targets.to(self.gpu_id)
+
+                output = self.model(source)
+                _, preds = torch.max(output, 1)
+                total_correct += torch.sum(preds == targets)
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
@@ -203,14 +207,6 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     train_data = prepare_dataloader(train_set, 40)
     val_data = prepare_dataloader(val_set, 40)
     test_data = prepare_dataloader(test_set, 40)
-
-    prof = torch.profiler.profile(
-        schedule=torch.profiler.schedule(wait=1, warmup=1, active=2),
-        on_trace_ready=torch.profiler.tensorboard_trace_handler("./logs/VGG"),
-        record_shapes=True,
-        with_stack=True,
-    )
-    prof.start()
 
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
