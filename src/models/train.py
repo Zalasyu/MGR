@@ -155,9 +155,9 @@ def train(data_loader, loss_fn, optimizer):
         avg_loss = train_one_epoch(data_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
-        MODEL.train(False)
         t1 = time.perf_counter()
         writer.add_scalar("Loss/Train", avg_loss, i + 1)
+        test(data_loader, loss_fn, optimizer)
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
         print(" ------------------- ")
     writer.flush()
@@ -212,6 +212,7 @@ def test(data_loader, loss_fn):
     print(f"Accuracy: {accuracy}")
 
     # Add the data to tensorboard
+    MODEL.train(True)
     writer.flush()
 
 
@@ -316,7 +317,7 @@ if __name__ == "__main__":
     # Print model's state_dict
 
     # (SANITY CHECK) OVERFIT ONE BATCH
-    overfit_batch(training_data_loader, loss_fn, optimizer)
+    # overfit_batch(training_data_loader, loss_fn, optimizer)
 
     print("Training model...")
     # Train the model
