@@ -176,9 +176,9 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
 def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")):
     ddp_setup()
     train_set, val_set, test_set, model, optimizer, criterion = load_train_objs()
-    train_data = prepare_dataloader(train_set, 100)
-    val_data = prepare_dataloader(val_set, 100)
-    test_data = prepare_dataloader(test_set, 100)
+    train_data = prepare_dataloader(train_set, 66)
+    val_data = prepare_dataloader(val_set, 66)
+    test_data = prepare_dataloader(test_set, 66)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
     trainer.train(total_epochs)
