@@ -112,6 +112,7 @@ class Trainer:
             # Log loss to tensorboard
             if self.gpu_id == 0:
                 WRITER.add_scalar("Loss/train", loss, epoch)
+                self.validate()
 
         WRITER.flush()
 
@@ -140,9 +141,11 @@ class Trainer:
                 total_correct += torch.sum(preds == targets)
                 total_items += len(targets)
 
-        print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
+        print(
+            f"Validation Accuracy: {100.0*(total_correct / total_items):.2f}%")
         print(f"Total Correct: {total_correct}")
         print(f"Total Items: {total_items}")
+        self.model.train()
 
         return total_correct / total_items
 
