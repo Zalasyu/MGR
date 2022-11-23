@@ -146,20 +146,20 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     return running_loss
 
 
-def train(data_loader, loss_fn, optimizer):
+def train(train_loader, val_loader loss_fn, optimizer):
 
     for i in range(EPOCHS):
         t0 = time.perf_counter()
         print(f"Epoch {i+1}")
         MODEL.train(True)
-        running_loss = train_one_epoch(data_loader, loss_fn, optimizer)
+        running_loss = train_one_epoch(train_loader, loss_fn, optimizer)
 
         # We do not need gradients on to do reporting
         t1 = time.perf_counter()
-        avg_loss = running_loss / len(data_loader)
+        avg_loss = running_loss / len(train_loader)
 
         writer.add_scalar("Loss/Train", avg_loss, i + 1)
-        test(data_loader, loss_fn)
+        test(val_loader, loss_fn, i)
         print(f"Epoch {i+1} took {t1-t0:.2f} seconds")
         print(" ------------------- ")
     writer.flush()
@@ -168,7 +168,7 @@ def train(data_loader, loss_fn, optimizer):
 
 
 @torch.no_grad()
-def test(data_loader, loss_fn):
+def test(data_loader, loss_fn, epoch):
     """
     Test the model
 
@@ -212,6 +212,7 @@ def test(data_loader, loss_fn):
 
     print(f"Test Loss: {avg_loss}")
     print(f"Accuracy: {accuracy}")
+    writer.add_scaler("Accuracy/Test", accuracy, epoch)
 
     # Add the data to tensorboard
     MODEL.train(True)
@@ -326,7 +327,7 @@ if __name__ == "__main__":
     t_start = time.perf_counter()
 
     # train_it_baby(training_data_loader, test_data_loader, loss_fn, optimizer)
-    train(training_data_loader, loss_fn, optimizer)
+    train(training_data_loader, val_data_loader, loss_fn, optimizer)
 
     t_end = time.perf_counter()
     print(f"Training took {t_end - t_start} seconds")
