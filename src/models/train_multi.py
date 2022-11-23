@@ -77,6 +77,7 @@ class Trainer:
         loss = self.criterion(output, targets)
         loss.backward()
         self.optimizer.step()
+        return loss.item()
 
     def _run_epoch(self, epoch):
         # Get  Batch Size from dataloader
@@ -86,7 +87,13 @@ class Trainer:
         # .sampler is the DistributedSampler for shuffling the data
         self.train_data[0].sampler.set_epoch(epoch)
         for source, targets in self.train_data[0]:
-            self._run_batch(source.to(self.gpu_id), targets.to(self.gpu_id))
+            loss = self._run_batch(
+                source.to(self.gpu_id), targets.to(self.gpu_id))
+
+            # Log loss to tensorboard
+            WRITER.add_scalar("Loss/train", loss, epoch)
+
+        WRITER.flush()
 
     def _save_checkpoint(self, epoch):
         # We need to access module since it was wrapped with DDP
@@ -131,16 +138,22 @@ class Trainer:
 # Load Train Objects
 # The ingredients for training
 def load_train_objs():
+    VALIDATION_SPLIT = 0.2
+    TRAIN_SPLIT = 0.8
 
     # Load YOUR dataset
-    train_set = GtzanDataset(ANNOTATIONS_FILE_CLOUD, GENRES_DIR_CLOUD)
+    gtzan = GtzanDataset(ANNOTATIONS_FILE_CLOUD, GENRES_DIR_CLOUD)
+
+    # Split into train and validation
+    train_set, val_set = torch.utils.data.random_split(
+        gtzan, [int(TRAIN_SPLIT * len(gtzan)), int(VALIDATION_SPLIT * len(gtzan))])
 
     # load YOUR model
     # Types of VGG available: VGG11, VGG13, VGG16, VGG19
     model = VGG_Net(architecture="VGG19")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss()
-    return train_set, model, optimizer, criterion
+    return train_set, val_set, model, optimizer, criterion
 
 
 def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
@@ -151,15 +164,17 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
         batch_size=batch_size,
         shuffle=False,
         pin_memory=True,
-        sampler=DistributedSampler(dataset)
+        sampler=DistributedSampler(dataset),
+        num_workers=2
     )
 
 
 def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")):
     ddp_setup()
-    dataset, model, optimizer, criterion = load_train_objs()
-    train_data = prepare_dataloader(dataset, 32)
-    trainer = Trainer(model, train_data, None, optimizer,
+    train_set, val_set, model, optimizer, criterion = load_train_objs()
+    train_data = prepare_dataloader(train_set, 100)
+    val_data = prepare_dataloader(val_set, 100)
+    trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
     trainer.train(total_epochs)
     trainer.validate()
