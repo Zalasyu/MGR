@@ -213,6 +213,7 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     prof.start()
 
     # Profile GPU
+    model = model.cuda()
     for step, (source, targets) in enumerate(train_data):
         model(source.to(0))
         if step >= (1 + 1 + 3) * 2:
