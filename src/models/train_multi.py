@@ -141,62 +141,10 @@ class Trainer:
 
         return total_correct / total_items
 
-    def write_images_to_tensorboard(self):
-        for source, targets in self.val_data[0]:
-            output = self.model(source.to(self.gpu_id))
-            _, preds = torch.max(output, 1)
-            for i in range(len(source)):
-                WRITER.add_image(
-                    "Validation Images",
-                    source[i],
-                    targets[i],
-                    dataformats="CHW")
-                WRITER.add_image(
-                    "Validation Images",
-                    source[i],
-                    preds[i],
-                    dataformats="CHW")
-            break
-
-    def inspect_model_with_tensorboard(self):
-        # Add the model to tensorboard
-        sample_data = next(iter(self.val_data[0]))
-        WRITER.add_graph(self.model, sample_data.to(self.gpu_id))
-        WRITER.flush()
-
-    def images_to_probs(self):
-        output = self.model(self.val_data[0])
-        _, preds_tensor = torch.max(output, 1)
-        preds = np.squeeze(preds_tensor.numpy())
-        return preds, [F.softmax(el, dim=0)[i].item() for i, el in zip(preds, output)]
-
-    def plot_classes_preds(self):
-
-        preds, probs = self.images_to_probs(self.model, self.val_data[0])
-        fig = plt.figure(figsize=(12, 48))
-        for idx in np.arange(4):
-            ax = fig.add_subplot(1, 4, idx+1, xticks=[], yticks=[])
-            self.matplotlib_imshow(
-                self.val_data[0].dataset[idx][0], one_channel=True)
-            ax.set_title(
-                f"{self.val_data[0].dataset.classes[preds[idx]]}, {probs[idx]:1.1f}",
-                color=("green" if preds[idx] == self.val_data[0].dataset[idx][1] else "red"))
-
-        return fig
-
-    def matplotlib_imshow(self, img, one_channel=False):
-        if one_channel:
-            img = img.mean(dim=0)
-        img = img / 2 + 0.5     # unnormalize
-        npimg = img.numpy()
-        if one_channel:
-            plt.imshow(npimg, cmap="Greys")
-        else:
-            plt.imshow(np.transpose(npimg, (1, 2, 0)))
-
-
 # Load Train Objects
 # The ingredients for training
+
+
 def load_train_objs():
     VALIDATION_SPLIT = 0.1
     TRAIN_SPLIT = 0.7
