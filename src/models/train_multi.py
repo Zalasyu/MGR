@@ -138,24 +138,26 @@ class Trainer:
 # Load Train Objects
 # The ingredients for training
 def load_train_objs():
-    VALIDATION_SPLIT = 0.2
-    TRAIN_SPLIT = 0.8
+    VALIDATION_SPLIT = 0.1
+    TRAIN_SPLIT = 0.7
+    TEST_SPLIT = 1 - TRAIN_SPLIT - VALIDATION_SPLIT
 
     # Load YOUR dataset
     gtzan = GtzanDataset(ANNOTATIONS_FILE_CLOUD, GENRES_DIR_CLOUD)
 
     train_count = int(len(gtzan) * TRAIN_SPLIT)
     val_count = int(len(gtzan) * VALIDATION_SPLIT)
+    test_count = len(gtzan) - train_count - val_count
 
     # Split into train and validation
-    train_set, val_set = torch.utils.data.random_split(
-        gtzan, [train_count, val_count])
+    train_set, val_set, test_set = torch.utils.data.random_split(
+        gtzan, [train_count, val_count, test_count])
     # load YOUR model
     # Types of VGG available: VGG11, VGG13, VGG16, VGG19
     model = VGG_Net(architecture="VGG19")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss()
-    return train_set, val_set, model, optimizer, criterion
+    return train_set, val_set, test_set, model, optimizer, criterion
 
 
 def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
@@ -173,9 +175,10 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
 
 def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")):
     ddp_setup()
-    train_set, val_set, model, optimizer, criterion = load_train_objs()
+    train_set, val_set, test_set, model, optimizer, criterion = load_train_objs()
     train_data = prepare_dataloader(train_set, 100)
     val_data = prepare_dataloader(val_set, 100)
+    test_data = prepare_dataloader(test_set, 100)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
     trainer.train(total_epochs)

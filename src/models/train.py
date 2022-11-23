@@ -274,7 +274,7 @@ if __name__ == "__main__":
     print("Splitting data into train, validation, and test sets")
     # Split the data into training, testing, and validation sets
     train_count = int(len(gtzan) * TRAINING_PERCENTAGE)  # 80% of data
-    val_count = int(len(gtzan) * VALIDATION_PERCENTAGE)  # 20% of the data
+    val_count = int(len(gtzan) * VALIDATION_PERCENTAGE)  # 10% of the data
     test_count = len(gtzan) - train_count - val_count  # 10% of the data
     train_dataset, val_dataset, test_dataset = torch.utils.data.random_split(
         gtzan, [train_count, val_count, test_count])
