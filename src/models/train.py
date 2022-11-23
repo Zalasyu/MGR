@@ -44,8 +44,8 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
 print("Creating model...")
 # Construct the model
-desired_arch = "VGG16"
-MODEL = VGG_Net(architecture="VGG16").to(DEVICE)
+desired_arch = "VGG19"
+MODEL = VGG_Net(architecture=desired_arch).to(DEVICE)
 print("Model created")
 print(MODEL)
 print("-------------------")

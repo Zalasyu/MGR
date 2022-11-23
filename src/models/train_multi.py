@@ -111,20 +111,20 @@ class Trainer:
 
             # Log loss to tensorboard
             if self.gpu_id == 0:
-                WRITER.add_scalar("Loss/train", loss, epoch)
-                self.validate()
+                WRITER.add_scalar("Loss/Train", loss, epoch)
 
         WRITER.flush()
 
     def train(self, max_epochs: int):
         for epoch in range(self.epochs_run, max_epochs):
             self._run_epoch(epoch)
+            self.validate(epoch)
 
             # Save only from master process since all other nodes will have the same model
             if epoch % self.save_every == 0 and self.gpu_id == 0:
                 self._save_checkpoint(epoch)
 
-    def validate(self):
+    def validate(self, epoch):
         self.model.eval()
         total_correct = 0
         total_items = 0
@@ -145,6 +145,8 @@ class Trainer:
             f"Validation Accuracy: {100.0*(total_correct / total_items):.2f}%")
         print(f"Total Correct: {total_correct}")
         print(f"Total Items: {total_items}")
+        WRITER.add_scalar("Accuracy/Validation", 100.0 *
+                          (total_correct / total_items), epoch)
         self.model.train()
 
         return total_correct / total_items
@@ -207,15 +209,15 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
 def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")):
     ddp_setup()
     train_set, val_set, test_set, model, optimizer, criterion = load_train_objs()
-    train_data = prepare_dataloader(train_set, 40)
-    val_data = prepare_dataloader(val_set, 40)
-    test_data = prepare_dataloader(test_set, 40)
+    train_data = prepare_dataloader(train_set, 45)
+    val_data = prepare_dataloader(val_set, 45)
+    test_data = prepare_dataloader(test_set, 45)
 
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
 
     trainer.train(total_epochs)
-    trainer.validate()
+    # trainer.validate()
     destroy_process_group()
 
 
