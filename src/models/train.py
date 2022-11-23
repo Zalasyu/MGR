@@ -212,7 +212,7 @@ def test(data_loader, loss_fn, epoch):
 
     print(f"Test Loss: {avg_loss}")
     print(f"Accuracy: {accuracy}")
-    writer.add_scaler("Accuracy/Test", accuracy, epoch)
+    writer.add_scalar("Accuracy/Test", accuracy, epoch)
 
     # Add the data to tensorboard
     MODEL.train(True)
