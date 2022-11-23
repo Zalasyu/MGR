@@ -94,12 +94,6 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
 
         # Forward pass
         with torch.cuda.amp.autocast():
-            print(f"Height of X: {X.shape[2]}")
-            print(f"Width of X: {X.shape[3]}")
-            print(
-                f"Height after conv: {MODEL.height_after_conv(X.shape[2])}")
-            print(
-                f"Width after conv: {MODEL.width_after_conv(X.shape[3])}")
             y_pred = MODEL(X)
             loss = loss_fn(y_pred, y)
 
