@@ -169,7 +169,6 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
         shuffle=False,
         pin_memory=True,
         sampler=DistributedSampler(dataset),
-        num_workers=2
     )
 
 
