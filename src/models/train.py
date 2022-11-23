@@ -199,7 +199,7 @@ def test(data_loader, loss_fn):
         _, predicted = torch.max(outputs.data, 1)
         # Show Confidence for each class
         confidence = torch.nn.functional.softmax(outputs, dim=1)[0] * 100
-        print(f"Confidence: {confidence.tolist()}")
+        # print(f"Confidence: {confidence.tolist()}")
 
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
