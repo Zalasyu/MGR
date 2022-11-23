@@ -125,17 +125,20 @@ class Trainer:
 
     def validate(self):
         self.model.eval()
+        self.model.to(0)
         total_correct = 0
         total_items = 0
 
         with torch.no_grad():
             for source, targets in self.val_data[0]:
                 output = self.model(source.to(0))
-                _, preds = torch.max(output, 1)
+                _, preds = torch.max(output, 1).to(0)
                 total_correct += torch.sum(preds == targets.to(0))
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
+        print(f"Total Correct: {total_correct}")
+        print(f"Total Items: {total_items}")
 
         return total_correct / total_items
 
