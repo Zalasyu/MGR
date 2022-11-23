@@ -237,8 +237,8 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
-                         genres_dir=GENRES_DIR_LOCAL,)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
+                         genres_dir=GENRES_DIR_CLOUD,)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
