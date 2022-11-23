@@ -4,8 +4,6 @@ from torch import nn
 from torch.utils.data import DataLoader, Dataset
 from dataset_maker import GtzanDataset
 from vgg_net import VGG_Net
-import time
-import torchvision
 from torch.utils.tensorboard import SummaryWriter
 import datetime
 
@@ -14,6 +12,9 @@ import torch.multiprocessing as mp
 from torch.utils.data.distributed import DistributedSampler
 from torch.nn.parallel import DistributedDataParallel as DDP
 from torch.distributed import init_process_group, destroy_process_group
+
+# Metrics and logging
+import torchmetrics
 
 ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
 GENRES_DIR_LOCAL = "/home/zalasyu/Documents/467-CS/Data/genres_original"
@@ -24,7 +25,7 @@ GENRES_DIR_CLOUD = "/nfs/stak/users/moldovaa/hpc-share/Data/genres_original"
 TIMESTAMP = datetime.datetime.now().strftime("%m-%d-%Y--%H:%M")
 
 
-# WRITER = SummaryWriter()
+WRITER = SummaryWriter()
 
 
 def ddp_setup():
@@ -110,10 +111,25 @@ class Trainer:
             if epoch % self.save_every == 0 and self.gpu_id == 0:
                 self._save_checkpoint(epoch)
 
+    def validate(self):
+        self.model.eval()
+        total_correct = 0
+        total_items = 0
+
+        with torch.no_grad():
+            for source, targets in self.val_data[0]:
+                output = self.model(source.to(self.gpu_id))
+                _, preds = torch.max(output, 1)
+                total_correct += torch.sum(preds == targets.to(self.gpu_id))
+                total_items += len(targets)
+
+        print(f"Validation Accuracy: {total_correct / total_items}")
+
+        return total_correct / total_items
+
+
 # Load Train Objects
 # The ingredients for training
-
-
 def load_train_objs():
 
     # Load YOUR dataset
@@ -146,6 +162,7 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     trainer = Trainer(model, train_data, None, optimizer,
                       criterion, save_every, snapshot_path)
     trainer.train(total_epochs)
+    trainer.validate()
     destroy_process_group()
 
 
