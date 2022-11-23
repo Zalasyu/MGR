@@ -123,7 +123,7 @@ def load_train_objs():
 
     # load YOUR model
     # Types of VGG available: VGG11, VGG13, VGG16, VGG19
-    model = VGG_Net(VGG_type="VGG16")
+    model = VGG_Net(architecture="VGG19")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss()
     return train_set, model, optimizer, criterion
