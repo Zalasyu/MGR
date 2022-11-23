@@ -14,6 +14,7 @@ from torch.distributed import init_process_group, destroy_process_group
 
 # Tensorboard Support
 from torch.utils.tensorboard import SummaryWriter
+import torch.profiler
 
 
 ANNOTATIONS_FILE_LOCAL = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
@@ -109,7 +110,8 @@ class Trainer:
                 source.to(self.gpu_id), targets.to(self.gpu_id))
 
             # Log loss to tensorboard
-            WRITER.add_scalar("Loss/Train", loss, epoch)
+            if self.gpu_id == 0:
+                WRITER.add_scalar("Loss/train", loss, epoch)
 
         WRITER.flush()
 
@@ -198,8 +200,27 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
     train_data = prepare_dataloader(train_set, 40)
     val_data = prepare_dataloader(val_set, 40)
     test_data = prepare_dataloader(test_set, 40)
+
+    prof = torch.profiler.profile(
+        schedule=torch.profiler.schedule(wait=1, warmup=1, active=2),
+        on_trace_ready=torch.profiler.tensorboard_trace_handler("./logs/VGG"),
+        record_shapes=True,
+        with_stack=True,
+    )
+    prof.start()
+
+    # Profile GPU
+    for step, (source, targets) in enumerate(train_data):
+        model(source.to(0))
+        if step >= (1 + 1 + 3) * 2:
+            break
+        trainer.train(2)
+        prof.step()
+    prof.stop()
+
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
+
     trainer.train(total_epochs)
     trainer.validate()
     destroy_process_group()

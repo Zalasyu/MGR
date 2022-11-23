@@ -110,7 +110,7 @@ class Oracle():
     """
 
     def __init__(self):
-        self.model = VGG()
+        self.model = VGG_Net()
         self.model.load_state_dict(torch.load(MODEL_PATH))
         self.model.eval()
         self.transform_input_song = TransformInputSong(
@@ -146,6 +146,26 @@ class Oracle():
 
 class InputChecker():
 
+    def __init__(self):
+        self.valid_extensions = [".mp3", ".wav"]
+
+    def __call__(self, input):
+        self.check_input(input)
+        self.check_extension(input)
+        self.check_file_size(input)
+
+    def check_input(self, input):
+        if not os.path.exists(input):
+            raise ValueError("Input file does not exist")
+
+    def check_extension(self, input):
+        if os.path.splitext(input)[1] not in self.valid_extensions:
+            raise ValueError("Input file is not a valid audio file")
+
+    def check_file_size(self, input):
+        if os.path.getsize(input) == 0:
+            raise ValueError("Input file is empty")
+
 
 if __name__ == "__main__":
     model = VGG_Net()
@@ -157,9 +177,17 @@ if __name__ == "__main__":
         n_mels=N_MELS
     )
     oracle = Oracle()
+    input_checker = InputChecker()
 
     try:
         # 1. Get input from user
+        userInput = input("Enter the path to the song: ")
+
+        # 2. Check input
+        input_checker(userInput)
+
+        # 3. Get predictions
+        oracle(userInput)
 
     except Exception as e:
         print(e)
