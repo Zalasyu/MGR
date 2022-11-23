@@ -153,7 +153,11 @@ class PrepareAudio:
         Args: Path = path to audio file.
         Return: Path to converted file
         """
-
+        # Check if file is already a .wav extension
+        root, ext = os.path.splitext(path)
+        if ext == '.wav':
+            # Already a wav file
+            return path
         # Extract name of file from path variable
         path_parts = os.path.split(path)
         file_name_with_ext = path_parts[len(path_parts)-1]
@@ -252,7 +256,7 @@ class PrepareAudio:
             os.makedirs(self.PNG_DATA_PATH)  # type: ignore
 
         # Save mel spectrogram as .png to said directory
-        plt.savefig(f"{self.PNG_DATA_PATH}/{self.file_name}_ms.png")
+        # plt.savefig(f"{self.PNG_DATA_PATH}/{self.file_name}_ms.png")
 
 
 if __name__ == "__main__":
