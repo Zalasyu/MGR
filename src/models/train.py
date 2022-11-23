@@ -140,10 +140,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
 
         # Report
         print(f"Batch {batch+1} loss: {loss.item():.4f}")
-        if batch % BATCH_SIZE == 0:
-            print(f"Batch {batch}, Loss: {loss.item():.4f}")
-            writer.add_scalar("Loss/Train", loss.item(), batch)
-            writer.flush()
+        writer.add_scalar("Loss/Train", loss.item(), batch)
 
 
 def train(data_loader, loss_fn, optimizer):
