@@ -144,10 +144,12 @@ def load_train_objs():
     # Load YOUR dataset
     gtzan = GtzanDataset(ANNOTATIONS_FILE_CLOUD, GENRES_DIR_CLOUD)
 
+    train_count = int(len(gtzan) * TRAIN_SPLIT)
+    val_count = int(len(gtzan) * VALIDATION_SPLIT)
+
     # Split into train and validation
     train_set, val_set = torch.utils.data.random_split(
-        gtzan, [int(TRAIN_SPLIT * len(gtzan)), int(VALIDATION_SPLIT * len(gtzan))])
-
+        gtzan, [train_count, val_count])
     # load YOUR model
     # Types of VGG available: VGG11, VGG13, VGG16, VGG19
     model = VGG_Net(architecture="VGG19")
