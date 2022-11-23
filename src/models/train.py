@@ -146,7 +146,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
     return running_loss
 
 
-def train(train_loader, val_loader loss_fn, optimizer):
+def train(train_loader, val_loader, loss_fn, optimizer):
 
     for i in range(EPOCHS):
         t0 = time.perf_counter()
