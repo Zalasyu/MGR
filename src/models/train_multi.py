@@ -130,11 +130,14 @@ class Trainer:
         total_correct = 0
         total_items = 0
 
+        # Test validation set on one GPU
+        gpu_id = 0
+
         with torch.no_grad():
             for source, targets in self.val_data[0]:
-                output = self.model(source.to("cuda"))
+                output = self.model(source.to(gpu_id))
                 _, preds = torch.max(output, 1)
-                total_correct += torch.sum(preds == targets.to("cuda"))
+                total_correct += torch.sum(preds == targets.to(gpu_id))
                 total_items += len(targets)
 
         print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
@@ -162,7 +165,7 @@ def load_train_objs():
         gtzan, [train_count, val_count, test_count])
     # load YOUR model
     # Types of VGG available: VGG11, VGG13, VGG16, VGG19
-    model = VGG_Net(architecture="VGG16")
+    model = VGG_Net(architecture="VGG19")
     optimizer = torch.optim.Adam(model.parameters(), lr=0.0001)
     criterion = nn.CrossEntropyLoss()
     return train_set, val_set, test_set, model, optimizer, criterion
