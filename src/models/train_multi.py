@@ -242,7 +242,7 @@ def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd()
                       criterion, save_every, snapshot_path)
 
     # Inspect the model
-    trainer.inspect_model_with_tensorboard()
+    # trainer.inspect_model_with_tensorboard()
 
     #
 
