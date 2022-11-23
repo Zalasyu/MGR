@@ -91,6 +91,7 @@ class Trainer:
                 source.to(self.gpu_id), targets.to(self.gpu_id))
 
             # Log loss to tensorboard
+            print(f"[GPU {self.gpu_id}] Loss: {loss}")
             WRITER.add_scalar("Loss/train", loss, epoch)
 
         WRITER.flush()
@@ -130,7 +131,7 @@ class Trainer:
                 total_correct += torch.sum(preds == targets.to(self.gpu_id))
                 total_items += len(targets)
 
-        print(f"Validation Accuracy: {total_correct / total_items}")
+        print(f"Validation Accuracy: {100.0*(total_correct / total_items)}%")
 
         return total_correct / total_items
 
@@ -175,9 +176,9 @@ def prepare_dataloader(dataset: Dataset, batch_size: int) -> DataLoader:
 def main(total_epochs, save_every, snapshot_path: str = os.path.join(os.getcwd(), "snapshots", "snapshot.pth")):
     ddp_setup()
     train_set, val_set, test_set, model, optimizer, criterion = load_train_objs()
-    train_data = prepare_dataloader(train_set, 32)
-    val_data = prepare_dataloader(val_set, 32)
-    test_data = prepare_dataloader(test_set, 32)
+    train_data = prepare_dataloader(train_set, 40)
+    val_data = prepare_dataloader(val_set, 40)
+    test_data = prepare_dataloader(test_set, 40)
     trainer = Trainer(model, train_data, val_data, optimizer,
                       criterion, save_every, snapshot_path)
     trainer.train(total_epochs)
