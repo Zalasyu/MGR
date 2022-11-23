@@ -93,9 +93,8 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         y = y.to(DEVICE)
 
         # Forward pass
-        with torch.cuda.amp.autocast():
-            y_pred = MODEL(X)
-            loss = loss_fn(y_pred, y)
+        y_pred = MODEL(X)
+        loss = loss_fn(y_pred, y)
 
         # Backward pass
         SCALER.scale(loss).backward()
@@ -106,7 +105,8 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         optimizer.zero_grad()
 
         # Report
-        if batch % 100 == 0:
+        print(f"Batch {batch+1} loss: {loss.item():.4f}")
+        if batch % BATCH_SIZE == 0:
             print(f"Batch {batch}, Loss: {loss.item():.4f}")
             writer.add_scalar("Loss/Train", loss.item(), batch)
             writer.flush()
