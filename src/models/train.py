@@ -3,7 +3,10 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 from dataset_maker import GtzanDataset
+
 from vgg_net import VGG_Net
+
+
 import time
 import torchvision
 from torch.utils.tensorboard import SummaryWriter
@@ -31,7 +34,7 @@ DEVICE = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
 # HYPERPARAMETERS
 # number of data samples propagated through the network before parameters are updated
-BATCH_SIZE = 30
+BATCH_SIZE = 32
 EPOCHS = 100  # Number of times to iterate over the dataset
 # How much to update the model parameters at each batch/epoch.
 # NOTE: Smaller learning rate means slow learning speed, but more stable
@@ -44,8 +47,8 @@ TRAINING_PERCENTAGE = 1 - VALIDATION_PERCENTAGE - TEST_PERCENTAGE
 
 print("Creating model...")
 # Construct the model
-desired_arch = "VGG19"
-MODEL = VGG_Net(architecture=desired_arch).to(DEVICE)
+desired_arch = "VGG13"
+MODEL = VGG_Net(desired_arch).to(DEVICE)
 print("Model created")
 print(MODEL)
 print("-------------------")
@@ -205,7 +208,6 @@ def test(data_loader, loss_fn, epoch):
 
         total += labels.size(0)
         correct += (predicted == labels).sum().item()
-        writer.add_scalar("Loss/Test", running_loss, i)
 
     avg_loss = running_loss / (i + 1)
     accuracy = 100.0*correct / total
@@ -337,7 +339,7 @@ if __name__ == "__main__":
     # Test the model
     print("Testing model...")
     t_start = time.perf_counter()
-    test(test_data_loader, loss_fn)
+    # test(test_data_loader, loss_fn)
     print("Model tested")
     print("-------------------")
 

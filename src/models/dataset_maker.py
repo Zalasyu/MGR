@@ -3,6 +3,8 @@ import torchaudio
 import torch
 from torch.utils.data import Dataset
 import pandas as pd
+import matplotlib.pyplot as plt
+import librosa
 
 
 # TODO: Decompose Transformations into a separate class
@@ -197,21 +199,46 @@ class GtzanDataset(Dataset):
         mel_img = mel_generator(signal)
         return mel_img
 
+    def show_mel_spectrogram(self, idx):
+        """
+        Show the mel spectrogram of the audio signal at the given index
+
+        Args:
+            idx (int): index of the audio signal
+        """
+        signal, label = self.__getitem__(idx)
+        plt.figure(figsize=(10, 4))
+        plt.imshow(signal[0, :, :].numpy(), cmap="gray")
+        plt.title(label)
+        plt.show()
+
+
+class FMADataset(Dataset):
+    def __init__(self, annotations_file, genres_dir, genre_dict):
+        self.annotations = pd.read_csv(annotations_file)
+        self.genres_dir = genres_dir
+        self.genre_dict = genre_dict
+
+    def __len__(self):
+        return len(self.annotations)
+
+    def _get_audio_file_path(self, audio_id):
+        """Get the path to the audio file
+
+        Args:
+            audio_id (str): ID of the audio file
+
+        Returns:
+            str: Path to the audio file
+        """
+        # 59th column is the label colum in the csv file
+        # 0th column is the ID column in the csv file
+        genre = self.annotations.iloc[audio_id, 59]
+        path = os.path.join(self.genres_dir, genre,
+                            self.annotations.iloc[audio_id, 0])
+        return path
+
 
 if __name__ == "__main__":
-    ANNOTATIONS_FILE = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
-    GENRES_DIR = "/home/zalasyu/Documents/467-CS/Data/genres_original"
-
-    if torch.cuda.is_available():
-        device = "cuda"
-    else:
-        device = "cpu"
-
-    gtzan = GtzanDataset(ANNOTATIONS_FILE, GENRES_DIR, device)
-    print("Type of gtzan:", type(gtzan))
-
-    print("Length of dataset:", len(gtzan))
-
-    signal, label = gtzan[0]
-    print("Signal:", signal)
-    print("Label:", label)
+    ANNOTATIONS_FILE_GTZAN = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
+    GENRES_DIR_GTZAN = "/home/zalasyu/Documents/467-CS/Data/genres_original"
