@@ -315,7 +315,7 @@ if __name__ == "__main__":
     optimizer = torch.optim.Adam(MODEL.parameters(), lr=LEARNING_RATE)
 
     # Visualize the model
-    visualize_model(training_data_loader)
+    # visualize_model(training_data_loader)
 
     # Initialize the model with kaiming initialization
     # kaiming_init()
