@@ -2,7 +2,7 @@ import os.path
 import numpy
 
 from src.data.PrepareInput import PrepareAudio as pa
-from src.data.makedataset import MusicTrainingData as td
+from makedataset import MusicTrainingData as td
 
 
 class TestPrepareAudio():
@@ -86,5 +86,6 @@ class TestTrainingData:
 
     def test_length_dataset(self):
         """Tests that numpy dataset has correct count"""
-        training_data = numpy.load('tests/test_data/training_data.npy', allow_pickle=True)
+        training_data = numpy.load(
+            'tests/test_data/training_data.npy', allow_pickle=True)
         assert len(training_data) == 3

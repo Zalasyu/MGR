@@ -112,7 +112,8 @@ class PrepareAudio:
         Takes in original mel spectrogram array.
         Returns new array.
         """
-        mel_spectrogram = np.array(mel_spectrogram)         # Convert to numpy array
+        mel_spectrogram = np.array(
+            mel_spectrogram)         # Convert to numpy array
         if len(mel_spectrogram[0]) > self.spectrogram_length:
             # Spectrogram too long, shorten it to the specified length
             mel_spectrogram = mel_spectrogram[:, :self.spectrogram_length]
@@ -258,7 +259,7 @@ class PrepareAudio:
 if __name__ == "__main__":
     # Instructions: Specify a valid path to desired audio file
     # for the 'file' variable and the class will take care of the rest!
- 
+
     audio_prepper = PrepareAudio()
     file = 'tests/test_data/validfile_2.wav'
     audio_prepper.start(file)
