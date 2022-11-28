@@ -214,31 +214,40 @@ class GtzanDataset(Dataset):
 
 
 class FMADataset(Dataset):
-    def __init__(self, annotations_file, genres_dir, genre_dict):
-        self.annotations = pd.read_csv(annotations_file)
-        self.genres_dir = genres_dir
-        self.genre_dict = genre_dict
+    def __init__(self, metadata, audio_dir):
+        self.metadata = metadata
+        self.audio_dir = audio_dir
+        self.SAMPLE_RATE = 44100
+        self.NUM_SAMPLES = 44100 * 30
+        self.N_FFT = 1024
+        self.HOP_LENGTH = 512
+        self.NUM_MELS = 64
 
     def __len__(self):
-        return len(self.annotations)
+        return len(self.tracks)
 
-    def _get_audio_file_path(self, audio_id):
-        """Get the path to the audio file
+    def __getitem__(self, idx):
+        pass
 
-        Args:
-            audio_id (str): ID of the audio file
-
-        Returns:
-            str: Path to the audio file
-        """
-        # 59th column is the label colum in the csv file
-        # 0th column is the ID column in the csv file
-        genre = self.annotations.iloc[audio_id, 59]
-        path = os.path.join(self.genres_dir, genre,
-                            self.annotations.iloc[audio_id, 0])
-        return path
+    def _get_audio_file_path(self, track_id):
+        tid_str = str(track_id)
+        return os.path.join(self.audio_dir, tid_str[:3], f"{tid_str}.mp3")
 
 
 if __name__ == "__main__":
+    # GTZAN dataset
     ANNOTATIONS_FILE_GTZAN = "/home/zalasyu/Documents/467-CS/Data/features_30_sec.csv"
     GENRES_DIR_GTZAN = "/home/zalasyu/Documents/467-CS/Data/genres_original"
+
+    # FMA Metadata
+    TRACKS_LOCAL = "/home/zalasyu/Documents/467-CS/FMA/fma_metadata/tracks.csv"
+    GENRES_LOCAL = "/home/zalasyu/Documents/467-CS/FMA/fma_metadata/genres.csv"
+
+    # FMA Small dataset
+    FMA_SMALL_LOCAL = "/home/zalasyu/Documents/467-CS/FMA/fma_small"
+
+    # FMA Medium dataset
+    FMA_MEDIUM_LOCAL = "/home/zalasyu/Documents/467-CS/FMA/fma_medium"
+
+    # Test FMA Dataset Class
+    fma = FMADataset(TRACKS_LOCAL, GENRES_LOCAL, FMA_SMALL_LOCAL)
