@@ -131,7 +131,7 @@ def train_one_epoch(data_loader, loss_fn, optimizer):
         y = y.to(DEVICE)
 
         # Forward pass
-        y_pred = MODEL(X)
+        y_pred = MODEL(X).to(DEVICE)
         loss = loss_fn(y_pred, y)
 
         # Backward pass
