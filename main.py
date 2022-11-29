@@ -8,11 +8,7 @@ if __name__ == "__main__":
     Music Genre Classifier program."""
 
     # 1. Construct dataset (skip if you already have a .npy dataset)
-<<<<<<< HEAD
-    make_dataset = True   # Set to True to skip step
-=======
     make_dataset = True   # Set to False to skip step
->>>>>>> multi
     if make_dataset:
         print("Initiating dataset construction.... ")
         t0 = time.perf_counter()
@@ -35,12 +31,8 @@ if __name__ == "__main__":
     dict_path = "data/processed/genre_dict.txt"      # Path to genre dictionary
 
     # 3. Call model
-<<<<<<< HEAD
-    model = Model(batch_size, epochs, learning_rate, validation_percent, data_path, dict_path)
-=======
     model = Model(batch_size, epochs, learning_rate,
-                  validation_percent, data_path, classes)
->>>>>>> multi
+                  validation_percent, data_path, dict_path)
     print("Initiating model training.... ")
     t0 = time.perf_counter()  # Used for timing
     model.train_model()
