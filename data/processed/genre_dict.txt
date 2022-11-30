@@ -1,1 +1,1 @@
-{"pop": 0, "classical": 1, "hiphop": 2, "reggae": 3, "country": 4, "blues": 5, "jazz": 6, "rock": 7, "disco": 8, "metal": 9}
+{"jazz": 0, "reggae": 1, "rock": 2, "metal": 3, "classical": 4, "country": 5, "pop": 6, "hiphop": 7, "disco": 8, "blues": 9}
