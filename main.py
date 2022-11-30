@@ -1,4 +1,4 @@
-from makedataset import MusicTrainingData
+from src.data.makedataset import MusicTrainingData
 from src.models.train_model import Model
 import time   # Used for timimg
 
