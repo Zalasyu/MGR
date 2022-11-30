@@ -2,7 +2,7 @@ import os.path
 import numpy
 
 from src.data.PrepareInput import PrepareAudio as pa
-from makedataset import MusicTrainingData as td
+from src.data.makedataset import MusicTrainingData as td
 
 
 class TestPrepareAudio():
