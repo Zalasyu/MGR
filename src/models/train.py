@@ -229,7 +229,7 @@ def get_batch_create_img_grid(data_loader):
         data_loader (DataLoader): The data loader to extract from
     """
     dataiter = iter(data_loader)
-    images, labels = dataiter.next()
+    images, labels = next(dataiter)
 
     # Get image size with torchvision with first image
     img_size = torchvision.transforms.functional.get_image_size(images[0])
@@ -250,7 +250,8 @@ def visualize_model(data_loader):
         data_loader (DataLoader): The data loader to use for visualization
     """
     dataiter = iter(data_loader)
-    images, labels = dataiter.next()
+    print(dataiter)
+    images = dataiter.next()
 
     writer.add_graph(MODEL, images)
     writer.flush()
@@ -271,8 +272,8 @@ if __name__ == "__main__":
 
     # Load the data
     print("Loading data...")
-    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_CLOUD,
-                         genres_dir=GENRES_DIR_CLOUD,)
+    gtzan = GtzanDataset(annotations_file=ANNOTATIONS_FILE_LOCAL,
+                         genres_dir=GENRES_DIR_LOCAL,)
     print("Data loaded")
     print("Size of dataset: ", len(gtzan))
     print("-------------------")
@@ -304,6 +305,7 @@ if __name__ == "__main__":
     print("SANITY CHECK")
     print("Reporting to Tensorboard Random Mel Spectrogram Images from Training Set")
     # Display a random sample from the dataset
+    print(training_data_loader)
     get_batch_create_img_grid(training_data_loader)
     print("-------------------")
 
