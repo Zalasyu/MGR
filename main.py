@@ -38,3 +38,7 @@ if __name__ == "__main__":
     t1 = time.perf_counter()
     # Used for timing
     print(f"Model training completed in {round(t1-t0, 2)} seconds.")
+
+    # 4. Print a prediction
+    song_path = 'tests/test_data/validfile_2.wav'
+    results = model.predict_song(song_path)
