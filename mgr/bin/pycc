@@ -1,0 +1,3 @@
+#!/home/zalasyu/Documents/467-CS/MGR/mgr/bin/python3
+from numba.pycc import main
+main()
