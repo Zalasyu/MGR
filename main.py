@@ -1,5 +1,4 @@
-from makedataset import MusicTrainingData
-from makedataset import MusicTrainingDataAdvanced
+from src.data.makedataset import MusicTrainingData
 from src.models.train_model import Model
 import time   # Used for timimg
 
@@ -12,7 +11,7 @@ if __name__ == "__main__":
     if make_dataset:
         print("Initiating dataset construction.... ")
         t0 = time.perf_counter()
-        music_training_data = MusicTrainingDataAdvanced()
+        music_training_data = MusicTrainingData()
         data_path = "data/raw"
         output_path = 'data/processed'
         music_training_data.make_training_data(data_path, output_path)

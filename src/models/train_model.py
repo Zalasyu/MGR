@@ -156,16 +156,10 @@ class Model:
         self.spec_width = 64         # Spectrogram dimension
         self.spec_length = 2586      # Spectrogram dimension
 
-<<<<<<< HEAD
         self.data_path = data_path              # Directory path to data (.npy)
-        self.genre_dict = self.genre_file_to_dict(dict_path)    # Genre dictionary with genre names
+        self.genre_dict = self.genre_file_to_dict(
+            dict_path)    # Genre dictionary with genre names
         self.classes = len(self.genre_dict)     # Number of genres
-        self.device = self.get_device()         # Initialize hardware to run model on (CPU or GPU)
-        self.net = Net(self.classes, self.spec_width, self.spec_length).to(self.device)   # Initialize neural net instance
-        self.optimizer = optim.Adam(self.net.parameters(), lr=self.learning_rate)  # Initialize optimizer. Args(adjustable parameters, learning rate)
-        self.loss_function = nn.MSELoss()   # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
-=======
-        self.data_path = data_path          # Directory path to data (.npy)
         # Initialize hardware to run model on (CPU or GPU)
         self.device = self.get_device()
         self.net = Net(self.classes, self.spec_width, self.spec_length).to(
@@ -175,7 +169,6 @@ class Model:
             self.net.parameters(), lr=self.learning_rate)
         # Initialize loss function (Mean Squared Error is the one commonly used for one hot vectors)
         self.loss_function = nn.MSELoss()
->>>>>>> multi
         self.model_name = "Model_MGR_1"     # Model name for writing data to .log file
 
     def train_model(self):
@@ -440,7 +433,8 @@ class Model:
         args: arr = image array
         returns: tensor instance of the arr"""
         data_tensor = torch.Tensor(arr)
-        data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length)  # Reshape tensor
+        # Reshape tensor
+        data_tensor = data_tensor.view(-1, self.spec_width, self.spec_length)
         return data_tensor
 
     def predict_song(self, song_path):
@@ -456,8 +450,10 @@ class Model:
             return spectrogram[1]
         # Convert the spectrogram to a data tensor
         data_tensor = self.img_arr_to_tensor(spectrogram)
-        results = self.net(data_tensor).tolist()            # Get results from the neural network
-        results = results[0]                                # First result set in the results
+        # Get results from the neural network
+        results = self.net(data_tensor).tolist()
+        # First result set in the results
+        results = results[0]
         self.print_prediction_results(results)
         return results
 
