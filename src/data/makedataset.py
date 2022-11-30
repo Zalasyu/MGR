@@ -1,6 +1,6 @@
 import os
 import numpy as np
-from src.data.PrepareInput import PrepareAudio
+from PrepareInput import PrepareAudio
 import json
 
 
