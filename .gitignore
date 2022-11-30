@@ -18,8 +18,13 @@ z2.py
 
 # Training data
 data/external/
+<<<<<<< HEAD
 data/interim/
 data/interim/
+=======
+data/interim/wav/
+data/interim/png/
+>>>>>>> multi
 data/processed/*.npy
 data/raw/
 
@@ -178,3 +183,10 @@ cython_debug/
 #  and can be added to the global gitignore or merged into this file.  For a more nuclear
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
+
+# Ignore runs directory (For tensorboard reporting)
+runs/
+
+# Ignore models
+*.pt
+*.pth

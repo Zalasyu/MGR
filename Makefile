@@ -1,3 +1,15 @@
+## Run single-GPU training script
+singlegpu:
+	@echo "Running single-GPU training script..."
+	@cd src/models && python3 train.py
+
+## Run multi-GPU training script
+multigpu:
+	@echo "Running multi-GPU training script..."
+	@echo "Running with torchrun and with whatever available GPUs..."
+	@echo "Hyperparameters are set in make command at 30 epochs and save every 10 epochs..."
+	@cd src/models && torchrun --standalone --nproc_per_node=gpu train_multi.py 30 10
+
 ## install pip requirements
 install:
 	pip install -r requirements.txt
