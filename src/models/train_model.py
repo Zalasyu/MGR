@@ -171,9 +171,16 @@ class Model:
         self.loss_function = nn.MSELoss()
         self.model_name = "Model_MGR_1"     # Model name for writing data to .log file
 
-    def train_model(self):
+    def train_model(self, save_model, load_model, new_model_path):
         """Main driver function which allows for training and testing of a dataset.
         """
+
+        if load_model == True:
+            # net = Net(classes, kernal_size).to(device)
+            # optimizer = optim.Adam(net.parameters(), lr=self.learning_rate)
+            loaded_model = torch.load(new_model_path)
+            self.net.load_state_dict(loaded_model['state_dict'])            
+            self.optimizer.load_state_dict(loaded_model['optimizer'])
 
         # 1. Load Numpy dataset
         data = self.get_data()
@@ -198,7 +205,7 @@ class Model:
         test_y = labelset[-val_size:]
 
         # 6. Train and Test [Custom implementation]
-        self.train_and_test(train_x, train_y, test_x, test_y)
+        self.train_and_test(train_x, train_y, test_x, test_y, save_model, new_model_path)
         return
 
         # 6 v2. Train and Test [Original]    *NONFUNCTIONAL This throws errors*
@@ -257,7 +264,7 @@ class Model:
 
     # Training and testing (validation) methods
 
-    def train_and_test(self, train_x, train_y, test_x, test_y):
+    def train_and_test(self, train_x, train_y, test_x, test_y, save_model, new_model_path):
         """Oversees the training and validation process.
         args: train_x= training dataset, train_y = training labelset
               test_x= validation dataset, test_y = validation labelset
@@ -307,6 +314,10 @@ class Model:
             # Print to visualize changes post epoch run
             print(
                 f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)},Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
+
+        if save_model == True:
+            checkpoint = {'state_dict': self.net.state_dict(), 'optimizer': self.optimizer.state_dict()}
+            torch.save(checkpoint, new_model_path)
 
     def train_mod(self, batch_x, batch_y):
         """Runs data through the neural network for the purpose of training.
