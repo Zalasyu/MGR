@@ -21,8 +21,8 @@ if __name__ == "__main__":
 
     # 2. Specify parameters (Tweak following value appropriately)
     # classes = 10              # Number of genres in dataset NOT USED IN MODEL
-    batch_size = 3            # Slice of data that will be passed into model at a time
-    epochs = 100              # Specifies number of runs through dataset
+    batch_size = 45            # Slice of data that will be passed into model at a time
+    epochs = 20             # Specifies number of runs through dataset
     learning_rate = 0.0001    # Rate of optimization (How fast it learns)
     # Percent of sliced dataset that will be used for validating/testing
     validation_percent = 0.1
