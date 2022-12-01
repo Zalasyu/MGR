@@ -11,6 +11,7 @@ import random
 import time
 from src.data.PrepareInput import PrepareAudio
 import json
+import os
 
 """
 ----Instructions----
@@ -140,12 +141,12 @@ class Net(nn.Module):
 class Model:
     """The representation of our music genre classifier machine model."""
 
-    def __init__(self, batch_size, epochs, learning_rate, validation_percent, data_path, dict_path):
+    def __init__(self, model_path, batch_size=45, epochs=10, learning_rate=0.0001, validation_percent=0.1, data_path=None, dict_path=None):
         """Constructor method for the Modle class.
 
         Args: *Detailed below.
         """
-
+        self.model_path = model_path
         # Values that will likely need tweaking to optimize model (Trial and Error)
         self.batch_size = batch_size    # Size of data passed through NN at a time
         self.epochs = epochs            # Number of runs through dataset
@@ -171,16 +172,38 @@ class Model:
         self.loss_function = nn.MSELoss()
         self.model_name = "Model_MGR_1"     # Model name for writing data to .log file
 
-    def train_model(self, save_model, load_model, new_model_path):
+        # Check if model already exists
+        if self.check_file_exists(model_path):
+            # Load from existing model
+            self.load_model()
+
+    def check_file_exists(self, path):
+        """Checks if the specified file exists.
+        Args: Path = path to file.
+        Return: True if file exists, False otherwise.
+        """
+        if os.path.exists(path):
+            return True
+        else:
+            return False
+
+    def load_model(self):
+        """Load an existing model"""
+        # net = Net(classes, kernal_size).to(device)
+        # optimizer = optim.Adam(net.parameters(), lr=self.learning_rate)
+        loaded_model = torch.load(self.model_path)
+        self.net.load_state_dict(loaded_model['state_dict'])
+        self.optimizer.load_state_dict(loaded_model['optimizer'])
+        print('Model loaded from file path')
+
+    def save_model(self):
+        """Save the model to the initial model filepath"""
+        checkpoint = {'state_dict': self.net.state_dict(), 'optimizer': self.optimizer.state_dict()}
+        torch.save(checkpoint, self.model_path)
+
+    def train_model(self):
         """Main driver function which allows for training and testing of a dataset.
         """
-
-        if load_model == True:
-            # net = Net(classes, kernal_size).to(device)
-            # optimizer = optim.Adam(net.parameters(), lr=self.learning_rate)
-            loaded_model = torch.load(new_model_path)
-            self.net.load_state_dict(loaded_model['state_dict'])            
-            self.optimizer.load_state_dict(loaded_model['optimizer'])
 
         # 1. Load Numpy dataset
         data = self.get_data()
@@ -205,7 +228,10 @@ class Model:
         test_y = labelset[-val_size:]
 
         # 6. Train and Test [Custom implementation]
-        self.train_and_test(train_x, train_y, test_x, test_y, save_model, new_model_path)
+        self.train_and_test(train_x, train_y, test_x, test_y)
+
+        # 7. Save the model
+        self.save_model()
         return
 
         # 6 v2. Train and Test [Original]    *NONFUNCTIONAL This throws errors*
@@ -264,7 +290,7 @@ class Model:
 
     # Training and testing (validation) methods
 
-    def train_and_test(self, train_x, train_y, test_x, test_y, save_model, new_model_path):
+    def train_and_test(self, train_x, train_y, test_x, test_y):
         """Oversees the training and validation process.
         args: train_x= training dataset, train_y = training labelset
               test_x= validation dataset, test_y = validation labelset
@@ -314,10 +340,6 @@ class Model:
             # Print to visualize changes post epoch run
             print(
                 f"Epoch[{e}/{self.epochs}: Loss= {round(float(batch_loss), 5)},Accuracy[{int(round(matches/total, 5)*100)}%]= {matches}/{total}")
-
-        if save_model == True:
-            checkpoint = {'state_dict': self.net.state_dict(), 'optimizer': self.optimizer.state_dict()}
-            torch.save(checkpoint, new_model_path)
 
     def train_mod(self, batch_x, batch_y):
         """Runs data through the neural network for the purpose of training.
