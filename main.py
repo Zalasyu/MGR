@@ -21,16 +21,16 @@ if __name__ == "__main__":
 
     # 2. Specify parameters (Tweak following value appropriately)
     # classes = 10              # Number of genres in dataset NOT USED IN MODEL
-    batch_size = 45            # Slice of data that will be passed into model at a time
-    epochs = 1             # Specifies number of runs through dataset
+    batch_size = 90            # Slice of data that will be passed into model at a time
+    epochs = 30             # Specifies number of runs through dataset
     learning_rate = 0.0001    # Rate of optimization (How fast it learns)
     # Percent of sliced dataset that will be used for validating/testing
     validation_percent = 0.1
     data_path = "data/processed/training_data.npy"   # Path to dataset
     dict_path = "data/processed/genre_dict.txt"      # Path to genre dictionary
     new_model_path = "models/model.pth"
-    save_model = False
-    load_model = True
+    save_model = True
+    load_model = False
 
     # 3. Call model
     model = Model(batch_size, epochs, learning_rate,
