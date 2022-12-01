@@ -141,7 +141,7 @@ class Net(nn.Module):
 class Model:
     """The representation of our music genre classifier machine model."""
 
-    def __init__(self, model_path, batch_size=45, epochs=10, learning_rate=0.0001, validation_percent=0.1, data_path=None, dict_path=None):
+    def __init__(self, model_path, dict_path, batch_size=45, epochs=10, learning_rate=0.0001, validation_percent=0.1, data_path=None):
         """Constructor method for the Modle class.
 
         Args: *Detailed below.

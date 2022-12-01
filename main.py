@@ -32,8 +32,8 @@ if __name__ == "__main__":
     load_model = False
 
     # 3. Build model
-    model = Model(new_model_path, batch_size, epochs, learning_rate,
-                  validation_percent, data_path, dict_path)
+    model = Model(new_model_path, dict_path, batch_size, epochs, learning_rate,
+                  validation_percent, data_path)
 
     # 4. Train model
     if load_model is False:
