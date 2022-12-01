@@ -477,7 +477,7 @@ class Model:
             # Return the error message from the failed spectrogram transformation
             return spectrogram[1]
         # Convert the spectrogram to a data tensor
-        data_tensor = self.img_arr_to_tensor(spectrogram)
+        data_tensor = self.img_arr_to_tensor(spectrogram).to(self.device)
         # Get results from the neural network
         results = self.net(data_tensor).tolist()
         # First result set in the results
