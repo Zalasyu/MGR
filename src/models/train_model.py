@@ -189,8 +189,6 @@ class Model:
 
     def load_model(self):
         """Load an existing model"""
-        # net = Net(classes, kernal_size).to(device)
-        # optimizer = optim.Adam(net.parameters(), lr=self.learning_rate)
         loaded_model = torch.load(self.model_path)
         self.net.load_state_dict(loaded_model['state_dict'])
         self.optimizer.load_state_dict(loaded_model['optimizer'])
@@ -233,9 +231,6 @@ class Model:
         # 7. Save the model
         self.save_model()
         return
-
-        # 6 v2. Train and Test [Original]    *NONFUNCTIONAL This throws errors*
-        self.train_and_test_v2(train_x, train_y, test_x, test_y)
 
     # Dataset management/manipulation methods
 
